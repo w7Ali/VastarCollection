@@ -1,0 +1,7 @@
+[flake8]
+exclude =
+    .venv,
+    .git,
+    __pycache__,
+    migrations,
+    your_library_directory_or_file.py

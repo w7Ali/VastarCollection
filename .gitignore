@@ -1,0 +1,50 @@
+# Ignore Python bytecode files
+*.pyc
+__pycache__/
+
+# Ignore Django migration files
+*.sqlite3
+*.pyc
+db.sqlite3
+/migrations/
+
+# Ignore virtual environment
+.venv/
+venv/
+ENV/
+
+# Ignore IDE specific files
+.vscode/
+.idea/
+
+# Ignore logs
+*.log
+
+# Ignore compiled Python files
+*.pyc
+
+# Ignore local settings
+*.env
+*.env.*
+
+# Ignore package files
+*.zip
+*.egg-info/
+dist/
+build/
+
+# Ignore pipenv and poetry lock files
+Pipfile.lock
+poetry.lock
+
+# Ignore macOS specific files
+.DS_Store
+
+# Ignore system-specific files
+Thumbs.db
+
+# Ignore any other environment-specific files or directories
+.env.local
+
+# Ignore dummy data
+app/dummy_data

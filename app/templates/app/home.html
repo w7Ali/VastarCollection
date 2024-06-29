@@ -1,0 +1,147 @@
+{% extends 'app/base.html' %}
+
+{% load static %}
+
+{% block title %}
+  Home
+{% endblock title %}
+
+{% block extra_css %}
+  <style>
+    /* Custom CSS for product cards */  new
+    .product-card {
+      border: 1px solid #ddd;
+      transition: box-shadow 0.3s ease-in-out;
+    }
+
+    .product-card:hover {
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .product-card img {
+      max-height: 250px;
+      object-fit: cover;
+    }
+
+    .product-card .card-body {
+      padding: 1.25rem;
+    }
+
+    .product-card .card-title {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 0.75rem; /* Adjust margin for spacing */
+    }
+
+    .product-card .card-text {
+      color: #666;
+      font-size: 0.875rem;
+      margin-bottom: 1rem; /* Adjust margin for spacing */
+    }
+
+    .product-card .list-group-item {
+      border: none;
+      padding: 0.5rem 1.25rem;
+      font-size: 0.875rem;
+      color: #666;
+    }
+
+    .product-card .list-group-item:first-child {
+      border-top: 1px solid #ddd;
+    }
+
+    .product-card .list-group-item:last-child {
+      border-bottom: 1px solid #ddd;
+    }
+
+    .product-card .btn {
+      font-size: 0.875rem;
+      padding: 0.5rem 1.25rem;
+      border-radius: 20px;
+      transition: background-color 0.3s ease-in-out;
+    }
+
+    .product-card .btn-primary {
+      background-color: #007bff;
+      border-color: #007bff;
+      color: #fff;
+    }
+
+    .product-card .btn-primary:hover {
+      background-color: #0056b3;
+      border-color: #0056b3;
+    }
+
+    .product-card .btn-outline-secondary {
+      color: #666;
+      border-color: #ccc;
+    }
+
+    .product-card .btn-outline-secondary:hover {
+      background-color: #f8f9fa;
+      color: #333;
+      border-color: #ccc;
+    }
+
+    /* Custom styles for specific elements */
+    .product-card .text-orange {
+      color: orange;
+    }
+
+    .product-card .text-green {
+      color: green;
+    }
+
+    .product-card .fw-bold {
+      font-weight: bold;
+    }
+  </style>
+{% endblock extra_css %}
+
+{% block livesale %}
+  <!-- Live Sale Section -->
+  <div >
+    <div class="container-fluid row text-center p-2 text-white border-bottom shadow" style="background-color: #163020;">
+      <h6>SALE | 5% Instant Discount on Axis Bank Credit and Debit Card</h6>
+      <!-- <span class="fw-bold">5% Instant Discount on Axis Bank Credit and Debit Card</span> -->
+      <!-- <p class="fw-lighter fs-6 mt-2">* Terms and Conditions Apply (For details, visit Bank's official website)</p> -->
+    </div>
+  </div>
+  <!-- End Live Sale Section -->
+{% endblock livesale %}
+
+  {% block banner_slider %}
+    <!-- Banner Slider -->
+   {% include 'app/banner_slider.html' %}
+    <!-- End Banner Slider -->
+  {% endblock banner_slider %}
+
+{% block main-content %}
+<div class="container my-5">
+  <!-- Women's Wear Formal Jacket -->
+  <div id="womenSection" class="section-content" style="display: none;">
+    {% include 'app/women_wear.html' %}
+  </div>
+  <!-- End Women's Wear Formal Jacket -->
+
+  <!-- Men's Wear Formal Jacket -->
+  <div id="menSection" class="section-content" style="display: none;">
+    {% include 'app/men_wear.html' %}
+  </div>
+  <!-- End Men's Wear Formal Jacket -->
+
+  <!-- Buttons to toggle sections -->
+
+<script>
+  // JavaScript function to show only the selected section and hide others
+  function showSection(sectionId) {
+    var sections = document.getElementsByClassName('section-content');
+    for (var i = 0; i < sections.length; i++) {
+      sections[i].style.display = 'none';
+    }
+    document.getElementById(sectionId).style.display = 'block';
+  }
+</script>
+
+{% endblock main-content %}

@@ -1,0 +1,115 @@
+{% load static %}
+
+<!-- Centered Container -->
+<div class="container d-flex justify-content-center">
+  <!-- Banner Slider -->
+  <div id="carouselExampleControls" class="carousel slide" data-bs-ride="carousel" style="max-width: 800px;">
+    <div class="carousel-inner" id="carouselInner">
+      <!-- JavaScript will populate carousel items here -->
+    </div>
+    <a class="carousel-control-prev" href="#carouselExampleControls" role="button" data-bs-slide="prev">
+      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Previous</span>
+    </a>
+    <a class="carousel-control-next" href="#carouselExampleControls" role="button" data-bs-slide="next">
+      <span class="carousel-control-next-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Next</span>
+    </a>
+  </div>
+  <!-- End Banner Slider -->
+</div>
+<!-- End Centered Container -->
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    fetch('http://127.0.0.1:8000/api/products')
+      .then(response => response.json())
+      .then(data => {
+        const carouselInner = document.getElementById('carouselInner');
+
+        // Shuffle latest and highest discount products into one array
+        let products = [...data.latest_products, ...data.highest_discount_products];
+        shuffleArray(products);
+
+        // Populate carousel items
+        for (let i = 0; i < products.length; i += 2) {
+          const product1 = products[i];
+          const product2 = products[i + 1];
+          const activeClass = i === 0 ? 'active' : '';
+
+          const carouselItem = `
+            <div class="carousel-item ${activeClass}">
+              <div class="row">
+                <div class="col-4">
+                  <div class="mb-3">
+                    <img src="${product1.product_image}" class="d-block w-100" alt="${product1.title}">
+                  </div>
+                </div>
+                <!-- Start Inforation Container -->
+                <div class="col-3">
+                  <div class="row mb-3 carousel-caption d-none d-md-block align-items-center">
+                    <div class="col-12">
+                      <h5>${product1.title}</h5>
+                      <p>${product1.description}</p>
+                      <p>Selling Price: ₹ ${product1.selling_price}</p>
+                      <p>Discounted Price: ₹ ${product1.discounted_price}</p>
+                      <p>${product1.discount_percentage.toFixed(2)} % Off</p>
+                    </div>
+                  </div>
+                  <div class="row mb-3 carousel-caption d-none d-md-block align-items-center">
+                    <div class="col-12">
+                      <h5>${product2.title}</h5>
+                      <p>${product2.description}</p>
+                      <p>Selling Price: ₹ ${product2.selling_price}</p>
+                      <p>Discounted Price: ₹ ${product2.discounted_price}</p>
+                      <p>${product2.discount_percentage.toFixed(2)} % Off</p>
+                    </div>
+                  </div>
+                </div>
+                <!-- End Inforation Container -->
+                <div class="col-4 ml-2">
+                  <div class="mb-3">
+                    <img src="${product2.product_image}" class="d-block w-100" alt="${product2.title}">
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+          carouselInner.innerHTML += carouselItem;
+        }
+
+        // Activate carousel after adding items dynamically
+        const carousel = new bootstrap.Carousel(document.getElementById('carouselExampleControls'), {
+          interval: 5000 // Adjust the interval (in milliseconds) between slides
+        });
+
+        // Function to shuffle array elements
+        function shuffleArray(array) {
+          for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+          }
+        }
+      })
+      .catch(error => console.error('Error fetching products:', error));
+  });
+</script>
+
+<style>
+  /* Custom CSS for carousel items */
+  .carousel-item .col-4 {
+    position: relative;
+  }
+
+  .carousel-item img {
+    height: 400px; /* Larger image height */
+    object-fit: cover;
+  }
+
+  .carousel-caption {
+    position: relative; /* Adjust as needed */
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+    color: #fff; /* Text color */
+    padding: 10px;
+  }
+</style>

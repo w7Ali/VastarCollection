@@ -18,3 +18,10 @@ python manage.py runserver
 ## Admin Credential
 > - username: admin
 > - password: one2three
+
+## Instruction on working on new ticket
+- git pull origin dev
+- git checkout new_ticket_with_developer_name
+- - e.g git checkout Ticket_01_w7Ali
+- Add README.md in your working branch with your name [Tikcet_01_w7Ali_README.md]
+- - Add the description and also mention then class diagram for the added the changes

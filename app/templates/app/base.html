@@ -137,9 +137,10 @@
                     >
                   </li>
                   <li>
-                    <a class="dropdown-item" href="{% url 'logout' %}"
-                      >Logout</a
-                    >
+                    <form method="post" action="{% url 'logout' %}">
+                      {% csrf_token %}
+                      <button type="submit">logout</button>
+                  </form>
                   </li>
                 </ul>
               </li>
@@ -251,5 +252,25 @@
         });
       });
     </script>
+    <script>
+      document.getElementById('logout-link').addEventListener('click', function(event) {
+          event.preventDefault();
+          fetch("{% url 'logout' %}", {
+              method: 'DELETE',
+              headers: {
+                  'X-CSRFToken': '{{ csrf_token }}'
+              }
+          }).then(response => {
+              if (response.ok) {
+                  // Redirect to login page or another page as needed
+                  window.location.href = "{% url 'login' %}";
+              } else {
+                  console.error('Logout request failed');
+              }
+          }).catch(error => {
+              console.error('Error during logout request:', error);
+          });
+      });
+      </script>
   </body>
 </html>

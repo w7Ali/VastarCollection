@@ -6,6 +6,7 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django_resized import ResizedImageField
+from .utils import resize_image
 from PIL import Image as PILImage
 
 from .constants import CATEGORY_CHOICES, STATE_CHOICES, STATUS_CHOICES

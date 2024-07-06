@@ -68,106 +68,78 @@
     </style>
   </head>
   <body>
-    <nav
-      class="navbar navbar-expand-lg navbar-dark"
-      style="background-color: #304d30"
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #304d30">
+  <div class="container">
+    <a class="navbar-brand" href="/">VastarCollection</a>
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#navbarSupportedContent"
+      aria-controls="navbarSupportedContent"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
     >
-      <div class="container">
-        <a class="navbar-brand" href="/">VastarCollection </a>
-        <button
-          class="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarSupportedContent"
-          aria-controls="navbarSupportedContent"
-          aria-expanded="false"
-          aria-label="Toggle navigation"
-        >
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-            <li class="nav-item">
-              <a class="nav-link active" aria-current="page" href="/">Home</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link active"  onclick="showSection('menSection')"  href="#men_wear">Men's Wear</a>
-          </li>
-          <li class="nav-item">
-              <a class="nav-link active" onclick="showSection('womenSection')" href="#women_wear">Women</button>
-          </li>
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="/">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" onclick="showSection('menSection')" href="#men_wear">Men's Wear</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" onclick="showSection('womenSection')" href="#women_wear">Women</a>
+        </li>
+      </ul>
+      <form class="search-form d-flex align-items-center">
+        <input
+          class="search-input form-control me-2"
+          type="search"
+          placeholder="Search"
+          aria-label="Search"
+        />
+        <i class="fas fa-search search-icon" style="color: #fff; cursor: pointer;"></i>
+      </form>
+      <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+        {% if request.user.is_authenticated %}
+        <li class="nav-item dropdown">
+          <a
+            class="nav-link dropdown-toggle text-white"
+            href="#"
+            id="profileDropdown"
+            role="button"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
+            {{request.user.username|capfirst}}
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
+            <li><a class="dropdown-item" href="{% url 'profile' %}">Profile</a></li>
+            <li><a class="dropdown-item" href="{% url 'orders' %}">Orders</a></li>
+            <li><a class="dropdown-item" href="{% url 'passwordchange' %}">Change Password</a></li>
+            <li><a class="dropdown-item" href="{% url 'logout' %}">Logout</a></li>
           </ul>
-          <form class="search-form">
-            <input
-              class="search-input"
-              type="search"
-              placeholder="Search"
-              aria-label="Search"
-            />
-            <i class="fas fa-search search-icon"></i>
-          </form>
-          <div>
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-              {% if request.user.is_authenticated %}
-              <li class="nav-item dropdown mx-2">
-                <a
-                  class="nav-link dropdown-toggle text-white"
-                  href="#"
-                  id="profileDropdown"
-                  role="button"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                >
-                  {{request.user.username|capfirst}}
-                </a>
-                <ul class="dropdown-menu" aria-labelledby="profileDropdown">
-                  <li>
-                    <a class="dropdown-item" href="{% url 'profile' %}"
-                      >Profile</a
-                    >
-                  </li>
-                  <li>
-                    <a class="dropdown-item" href="{% url 'orders' %}"
-                      >Orders</a
-                    >
-                  </li>
-                  <li>
-                    <a class="dropdown-item" href="{% url 'passwordchange' %}"
-                      >Change Password</a
-                    >
-                  </li>
-                  <li>
-                    <form method="post" action="{% url 'logout' %}">
-                      {% csrf_token %}
-                      <button type="submit">logout</button>
-                  </form>
-                  </li>
-                </ul>
-              </li>
-              <li class="nav-item mx-2">
-                <a href="{% url 'showcart' %}" class="nav-link text-white"
-                  ><span class="badge bg-danger">{{totalitem}}</span> Cart
-                </a>
-              </li>
-              {% else %}
-              <li class="nav-item mx-2">
-                <a href="{% url 'login' %}" class="nav-link text-white"
-                  >Login</a
-                >
-              </li>
-              <li class="nav-item mx-2">
-                <a
-                  href="{% url 'customerregistration' %}"
-                  class="nav-link text-white"
-                  >Registration</a
-                >
-              </li>
-              {% endif %}
-            </ul>
-          </div>
-        </div>
-      </div>
-    </nav>
+        </li>
+        <li class="nav-item">
+          <a href="{% url 'showcart' %}" class="nav-link text-white">
+            <span class="badge bg-danger">{{totalitem}}</span> Cart
+          </a>
+        </li>
+        {% else %}
+        <li class="nav-item">
+          <a href="{% url 'login' %}" class="nav-link text-white">Login</a>
+        </li>
+        <li class="nav-item">
+          <a href="{% url 'customerregistration' %}" class="nav-link text-white">Registration</a>
+        </li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</nav>    
     {% block livesale %} {% endblock livesale %}  {% block banner_slider %} {% endblock banner_slider %}
     {% block main-content %} {% endblock main-content %}
     {% block payment-gateway %} {% endblock payment-gateway %}
@@ -194,7 +166,6 @@
     <script src="{% static 'app/js/all.min.js' %}"></script>
     <script src="{% static 'app/js/myscript.js' %}"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="{% static 'app/js/footer.js' %}"></script>
     <script>
       $(document).ready(function() {
         // Fetch company information using AJAX
@@ -204,20 +175,23 @@
           success: function(data) {
             // Update 'SEE IT FIRST' section with Font Awesome icon
             $('#see-it-first').html(`
-              <div>
+              <div class="row">
+                <div class="col-3 col-sm-12"> 
                 <h3><i class="fas fa-bell"></i> SEE IT FIRST</h3>
-                <form>
+                <form style="display: flex;">
                   <input
                     maxlength="100"
                     required
                     type="email"
                     placeholder="Enter your email address"
                     name="email"
-                    class="email"/><button type="button" class="btn btn-dark">
+                    class="email"/>
+                   <button type="button" class="btn btn-dark">
                     JOIN
                   </button>
                 </form>
-                <div>
+                </div>
+                <div class="col-4 col-sm-12">
                   <a href="#" style="color: black">
                     <h5><u>PRIVACY POLICY</u></h5>
                   </a>
@@ -227,18 +201,23 @@
     
             // Update 'About Us' section with Font Awesome icon
             $('#about-us').html(`
+            <div class="col-6 col-sm-12">
               <h3><i class="fas fa-building"></i> About Us</h3>
               <div>
-                <h5><i class="fas fa-map-marker-alt"></i> Address: ${data.office_address}, ${data.area}, ${data.city}, ${data.state}, ${data.pin_code}, ${data.country}</h5>
+                <h5><i class="fas fa-map-marker-alt"></i> Address: ${data.office_address}, ${data.area}, </br> ${data.city}, ${data.state}, </br> ${data.pin_code}, ${data.country}</h5>
               </div>
+            </div>  
             `);
     
             // Update 'Contact Us' section with Font Awesome icon
             $('#contact-us').html(`
+            <div class="col-3 col-sm-12">
               <h3><i class="fas fa-phone"></i> Contact Us</h3>
               <div>
                 <h5><i class="fas fa-phone-alt"></i> Phone No: ${data.office_number_1}</h5>
               </div>
+            </div>  
+            </div>
             `);
     
             // Update copyright information

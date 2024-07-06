@@ -101,14 +101,13 @@
 
 {% block livesale %}
   <!-- Live Sale Section -->
-  <div >
-    <div class="container-fluid row text-center p-2 text-white border-bottom shadow" style="background-color: #163020;">
-      <h6>SALE | 5% Instant Discount on Axis Bank Credit and Debit Card</h6>
-      <!-- <span class="fw-bold">5% Instant Discount on Axis Bank Credit and Debit Card</span> -->
-      <!-- <p class="fw-lighter fs-6 mt-2">* Terms and Conditions Apply (For details, visit Bank's official website)</p> -->
-    </div>
+<div style="width: 100%; overflow-x: hidden;">
+  <div class="container-fluid row text-center p-2 text-white border-bottom shadow" style="background-color: #163020; margin: 0; padding: 0;">
+    <h6 class="col-12">SALE | 5% Instant Discount on Axis Bank Credit and Debit Card</h6>
   </div>
-  <!-- End Live Sale Section -->
+</div>
+<!-- End Live Sale Section -->
+
 {% endblock livesale %}
 
   {% block banner_slider %}
@@ -118,7 +117,7 @@
   {% endblock banner_slider %}
 
 {% block main-content %}
-<div class="container my-5">
+<div class="mt-5">
   <!-- Women's Wear Formal Jacket -->
   <div id="womenSection" class="section-content" style="display: none;">
     {% include 'app/women_wear.html' %}

@@ -12,7 +12,7 @@ from django.contrib.auth.models import User
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
 
-from .models import Customer
+from .models import Customer, Address
 
 
 class CustomerRegistrationForm(UserCreationForm):
@@ -107,11 +107,26 @@ class MySetPasswordForm(SetPasswordForm):
 class CustomerProfileForm(forms.ModelForm):
     class Meta:
         model = Customer
-        fields = ["name", "locality", "city", "state", "zipcode"]
+        fields = ["first_name", "last_name", "mobile_number", "city", "user_image"]
         widgets = {
-            "name": forms.TextInput(attrs={"class": "form-control"}),
-            "locality": forms.TextInput(attrs={"class": "form-control"}),
+            "first_name": forms.TextInput(attrs={"class": "form-control"}),
+            "last_name": forms.TextInput(attrs={"class": "form-control"}),
+            "mobile_number": forms.TextInput(attrs={"class": "form-control"}),
             "city": forms.TextInput(attrs={"class": "form-control"}),
-            "state": forms.Select(attrs={"class": "form-control"}),
+            "user_image": forms.FileInput(attrs={"class": "form-control"}),
+        }
+
+
+class AddressForm(forms.ModelForm):
+    class Meta:
+        model = Address
+        fields = ["full_name", "mobile_number", "locality", "land_mark", "city", "zipcode", "state"]
+        widgets = {
+            "full_name": forms.TextInput(attrs={"class": "form-control"}),
+            "mobile_number": forms.NumberInput(attrs={"class": "form-control"}),
+            "locality": forms.TextInput(attrs={"class": "form-control"}),
+            "land_mark": forms.TextInput(attrs={"class": "form-control"}),
+            "city": forms.TextInput(attrs={"class": "form-control"}),
             "zipcode": forms.NumberInput(attrs={"class": "form-control"}),
+            "state": forms.Select(attrs={"class": "form-control"}),
         }

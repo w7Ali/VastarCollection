@@ -3,15 +3,30 @@
 <!-- Centered Container -->
 <div class="container d-flex justify-content-center">
   <!-- Banner Slider -->
-  <div id="carouselExampleControls" class="carousel slide" data-bs-ride="carousel" style="max-width: 800px;">
+  <div
+    id="carouselExampleControls"
+    class="carousel slide"
+    data-bs-ride="carousel"
+    style="max-width: 800px"
+  >
     <div class="carousel-inner" id="carouselInner">
       <!-- JavaScript will populate carousel items here -->
     </div>
-    <a class="carousel-control-prev" href="#carouselExampleControls" role="button" data-bs-slide="prev">
+    <a
+      class="carousel-control-prev"
+      href="#carouselExampleControls"
+      role="button"
+      data-bs-slide="prev"
+    >
       <span class="carousel-control-prev-icon" aria-hidden="true"></span>
       <span class="visually-hidden">Previous</span>
     </a>
-    <a class="carousel-control-next" href="#carouselExampleControls" role="button" data-bs-slide="next">
+    <a
+      class="carousel-control-next"
+      href="#carouselExampleControls"
+      role="button"
+      data-bs-slide="next"
+    >
       <span class="carousel-control-next-icon" aria-hidden="true"></span>
       <span class="visually-hidden">Next</span>
     </a>
@@ -21,67 +36,76 @@
 <!-- End Centered Container -->
 
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
-    fetch('http://127.0.0.1:8000/api/products')
-      .then(response => response.json())
-      .then(data => {
-        const carouselInner = document.getElementById('carouselInner');
+  document.addEventListener("DOMContentLoaded", function () {
+    fetch("http://127.0.0.1:8000/api/products")
+      .then((response) => response.json())
+      .then((data) => {
+        const carouselInner = document.getElementById("carouselInner");
 
         // Shuffle latest and highest discount products into one array
-        let products = [...data.latest_products, ...data.highest_discount_products];
+        let products = [
+          ...data.latest_products,
+          ...data.highest_discount_products,
+        ];
         shuffleArray(products);
 
         // Populate carousel items
         for (let i = 0; i < products.length; i += 2) {
           const product1 = products[i];
           const product2 = products[i + 1];
-          const activeClass = i === 0 ? 'active' : '';
+          const activeClass = i === 0 ? "active" : "";
 
-          const carouselItem = `
-            <div class="carousel-item ${activeClass}">
-              <div class="row">
-                <div class="col-4">
-                  <div class="mb-3">
-                    <img src="${product1.product_image}" class="d-block w-100" alt="${product1.title}">
-                  </div>
-                </div>
-                <!-- Start Inforation Container -->
-                <div class="col-3">
-                  <div class="row mb-3 carousel-caption d-none d-md-block align-items-center">
-                    <div class="col-12">
-                      <h5>${product1.title}</h5>
-                      <p>${product1.description}</p>
-                      <p>Selling Price: ₹ ${product1.selling_price}</p>
-                      <p>Discounted Price: ₹ ${product1.discounted_price}</p>
-                      <p>${product1.discount_percentage.toFixed(2)} % Off</p>
+           const carouselItem = `
+            <div class="carousel-item ${activeClass} mt-5">
+             <div class="row">
+               <!-- Product Image 1 -->
+               <div class="col-4">
+                 <div class="mb-3">
+                   <img src="${product1.product_image}" class="carousel-img d-block mw-100 rounded shadow-sm" alt="${product1.title}">
+                 </div>
+               </div>
+
+               <!-- Information Container -->
+               <div class="col-3">
+                 <div class="row mb-3 rounded carousel-caption d-none d-md-block mt-2" style="background-color:#f8f9fa;color:black;padding:15px; box-shadow: rgb(38, 57, 77) 0px 20px 30px -10px;">
+                   <div class="col-12 text-center">
+                     <h5 class="fw-bold">${product1.title}</h5>
+                     <p>₹ <s class="text-muted">${product1.selling_price}</s> <span class="text-danger fw-bold">₹ ${product1.discounted_price}</span></p>
+                     <p class="fs-6 text-success">${product1.discount_percentage.toFixed(2)}% Off</p>
+                       <a href="/product-detail/${product1.id}/" class="btn" style="background-color: #395839; color: #fff;" >View Details</a>
+                     </div>
+                 </div>
+                <div class="row mb-3 rounded carousel-caption d-none d-md-block" style="background-color:#f8f9fa;color:black;padding:15px;box-shadow: rgb(38, 57, 77) 0px 20px 30px -10px;">
+                  <div class="col-12 text-center">
+                    <h5 class="fw-bold">${product2.title}</h5>
+                    <p>₹ <s class="text-muted">${product2.selling_price}</s> <span class="text-danger fw-bold">₹ ${product2.discounted_price}</span></p>
+                    <p class="fs-6 text-success">${product2.discount_percentage.toFixed(2)}% Off</p>
+                      <a href="/product-detail/${product2.id}/" class="btn" style="background-color: #395839; color: #fff;" >View Details</a>
                     </div>
-                  </div>
-                  <div class="row mb-3 carousel-caption d-none d-md-block align-items-center">
-                    <div class="col-12">
-                      <h5>${product2.title}</h5>
-                      <p>${product2.description}</p>
-                      <p>Selling Price: ₹ ${product2.selling_price}</p>
-                      <p>Discounted Price: ₹ ${product2.discounted_price}</p>
-                      <p>${product2.discount_percentage.toFixed(2)} % Off</p>
-                    </div>
-                  </div>
-                </div>
-                <!-- End Inforation Container -->
-                <div class="col-4 ml-2">
-                  <div class="mb-3">
-                    <img src="${product2.product_image}" class="d-block w-100" alt="${product2.title}">
-                  </div>
                 </div>
               </div>
+              <!-- End Information Container -->
+
+               <!-- Product Image 2 -->
+               <div class="col-4" style="margin-left:50px;">
+                 <div class="mb-3">
+                   <img src="${product2.product_image}" class="carousel-img d-block mw-100 rounded shadow-sm" alt="${product2.title}" >
+                 </div>
+               </div>
+              </div>
             </div>
+
           `;
           carouselInner.innerHTML += carouselItem;
         }
 
         // Activate carousel after adding items dynamically
-        const carousel = new bootstrap.Carousel(document.getElementById('carouselExampleControls'), {
-          interval: 5000 // Adjust the interval (in milliseconds) between slides
-        });
+        const carousel = new bootstrap.Carousel(
+          document.getElementById("carouselExampleControls"),
+          {
+            interval: 5000, // Adjust the interval (in milliseconds) between slides
+          }
+        );
 
         // Function to shuffle array elements
         function shuffleArray(array) {
@@ -91,7 +115,7 @@
           }
         }
       })
-      .catch(error => console.error('Error fetching products:', error));
+      .catch((error) => console.error("Error fetching products:", error));
   });
 </script>
 
@@ -111,5 +135,8 @@
     background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
     color: #fff; /* Text color */
     padding: 10px;
+  }
+  .carousel-img:hover{
+    filter: blur(4px);
   }
 </style>

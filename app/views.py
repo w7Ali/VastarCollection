@@ -5,9 +5,10 @@ from django.http import JsonResponse
 from django.shortcuts import HttpResponse, get_object_or_404, redirect, render
 from django.utils.decorators import method_decorator
 from django.views import View
+from django.contrib.auth import authenticate#, login
 
-from .forms import CustomerProfileForm, CustomerRegistrationForm
-from .models import Cart, Customer, OrderPlaced, Product, ProductVariation
+from .forms import CustomerProfileForm, CustomerRegistrationForm, AddressForm
+from .models import Cart, Customer, OrderPlaced, Product, ProductVariation, Address
 
 
 class ProductView(View):
@@ -228,19 +229,6 @@ def remove_cart(request):
 
 
 @login_required
-def address(request):
-    totalitem = 0
-    if request.user.is_authenticated:
-        totalitem = len(Cart.objects.filter(user=request.user))
-    add = Customer.objects.filter(user=request.user)
-    return render(
-        request,
-        "app/address.html",
-        {"add": add, "active": "btn-primary", "totalitem": totalitem},
-    )
-
-
-@login_required
 def orders(request):
     op = OrderPlaced.objects.filter(user=request.user)
     return render(request, "app/orders.html", {"order_placed": op})
@@ -275,48 +263,78 @@ class CustomerRegistrationView(View):
     def post(self, request):
         form = CustomerRegistrationForm(request.POST)
         if form.is_valid():
-            messages.success(request, "Congratulations!! Registered Successfully.")
-            form.save()
+            # Save the form data and create a new Customer instance
+            user = form.save()
+            # Authenticate the user
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password1']
+            user = authenticate(username=username, password=password)
+            # Log in the user
+            if user is not None:
+                login(request, user)
+                messages.success(request, "Congratulations!! Registered Successfully.")
+                return redirect('home')  # Redirect to the home page after successful registration and login
+
         return render(request, "app/customerregistration.html", {"form": form})
-
-
 @method_decorator(login_required, name="dispatch")
 class ProfileView(View):
     def get(self, request):
         totalitem = 0
         if request.user.is_authenticated:
-            totalitem = len(Cart.objects.filter(user=request.user))
-        form = CustomerProfileForm()
+            totalitem = Cart.objects.filter(user=request.user).count()
+
+        # Fetch the first customer profile if multiple exist
+        customer = Customer.objects.filter(user=request.user).first()
+        if customer:
+            form = CustomerProfileForm(instance=customer)
+        else:
+            form = CustomerProfileForm()
+
         return render(
             request,
             "app/profile.html",
-            {"form": form, "active": "btn-primary", "totalitem": totalitem},
+            {"form": form, "customer": customer, "active": "btn-primary", "totalitem": totalitem},
         )
 
     def post(self, request):
-        totalitem = 0
-        if request.user.is_authenticated:
-            totalitem = len(Cart.objects.filter(user=request.user))
-        form = CustomerProfileForm(request.POST)
+        totalitem = Cart.objects.filter(user=request.user).count()
+        try:
+            customer = Customer.objects.get(user=request.user)
+            form = CustomerProfileForm(request.POST, request.FILES, instance=customer)
+        except Customer.DoesNotExist:
+            form = CustomerProfileForm(request.POST, request.FILES)
+
         if form.is_valid():
-            usr = request.user
-            name = form.cleaned_data["name"]
-            locality = form.cleaned_data["locality"]
-            city = form.cleaned_data["city"]
-            state = form.cleaned_data["state"]
-            zipcode = form.cleaned_data["zipcode"]
-            reg = Customer(
-                user=usr,
-                name=name,
-                locality=locality,
-                city=city,
-                state=state,
-                zipcode=zipcode,
-            )
-            reg.save()
+            customer = form.save(commit=False)
+            customer.user = request.user  # Assign the current user to the customer instance
+            customer.save()
             messages.success(request, "Congratulations!! Profile Updated Successfully.")
+            return redirect('profile')  # Redirect to avoid resubmission of form
+
         return render(
             request,
             "app/profile.html",
-            {"form": form, "active": "btn-primary", "totalitem": totalitem},
+            {"form": form, "customer": customer, "active": "btn-primary", "totalitem": totalitem},
         )
+
+
+@login_required
+def address_view(request):
+    user = request.user
+    if request.method == 'POST':
+        form = AddressForm(request.POST)
+        if form.is_valid():
+            address = form.save(commit=False)
+            address.user = user
+            address.save()
+            return redirect('address') 
+    else:
+        form = AddressForm()
+    addresses = Address.objects.filter(user=user)
+    active_address = addresses.filter(is_active=True).first()
+    context = {
+        'form': form,
+        'addresses': addresses,
+        'active_address': active_address,
+    }
+    return render(request, 'app/address.html', context)

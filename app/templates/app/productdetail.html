@@ -19,8 +19,13 @@
             <ul class="list-unstyled">
                 {% for variation in product_variation %}
                     <li class="mb-2">
-                        <span class="fw-bold">{{ variation.size }}</span> - 
-                        Color: <span class="text-capitalize">{{ variation.color }}</span> - 
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="size" id="size-{{ variation.size }}" value="{{ variation.size }}">
+                            <label class="form-check-label fw-bold" for="size-{{ variation.size }}">
+                              {{ variation.size }}
+                            </label>
+                          </div>
+                        Color: <span class="text-capitalize"> {{ variation.color }}</span> - 
                         Quantity: {{ variation.pieces_remaining }}
                     </li>
                     <!-- Display other attributes of variation as needed -->
@@ -40,10 +45,10 @@
             </form>
             {% endif %}
             {% else %}
-                <form action="{% url 'add-to-cart' product.id %}" method="post" class="d-inline">
-                    {% csrf_token %}
-                    <button type="submit" class="btn shadow px-5 py-2" style="background-color: #395839; color: white;">Add to Cart</button>
-                </form>
+            <form action="/add-to-cart" class="d-inline">
+                <input type="hidden" name="prod_id" value="{{product.id}}" id="prod_id">
+                <button type="submit" class="btn btn-primary shadow px-5 py-2">Add to Cart</button>
+            </form>
             {% endif %}
 
             <a href="{% url 'checkout' %}" class="btn shadow px-5 py-2 ms-4" style="background-color: #b6c4b6;">Buy Now</a>

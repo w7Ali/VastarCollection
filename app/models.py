@@ -18,7 +18,7 @@ class Customer(models.Model):
     last_name = models.CharField(max_length=200)
     city = models.CharField(max_length=50)
     mobile_number = models.BigIntegerField(blank=True, null=True)
-    # user_image = models.ImageField(upload_to="userimg", blank=True, null=True)
+    user_image = models.ImageField(upload_to="userimg", blank=True, null=True)
 
     def __str__(self):
         return self.user.username

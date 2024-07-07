@@ -9,12 +9,34 @@ from .models import (
     OrderPlaced,
     Product,
     ProductVariation,
+    Address
 )
 
 
 @admin.register(Customer)
 class CustomerModelAdmin(admin.ModelAdmin):
-    list_display = ["id", "user", "name", "locality", "city", "zipcode", "state"]
+    list_display = ["id", "user", "first_name", "last_name", "city", "mobile_number"]
+    search_fields = ["first_name", "last_name", "city", "mobile_number"]
+    list_filter = ["city"]
+
+
+@admin.register(Address)
+class AddressModelAdmin(admin.ModelAdmin):
+    list_display = [
+        "id",
+        "user",
+        "full_name",
+        "mobile_number",
+        "locality",
+        "land_mark",
+        "city",
+        "zipcode",
+        "state",
+        "is_active",
+    ]
+    search_fields = ["full_name", "city", "zipcode"]
+    list_filter = ["state", "city", "is_active"]
+
 
 
 @admin.register(Product)

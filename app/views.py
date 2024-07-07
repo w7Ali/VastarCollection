@@ -276,7 +276,6 @@ class CustomerRegistrationView(View):
                 return redirect('home')  # Redirect to the home page after successful registration and login
 
         return render(request, "app/customerregistration.html", {"form": form})
-
 @method_decorator(login_required, name="dispatch")
 class ProfileView(View):
     def get(self, request):
@@ -294,17 +293,16 @@ class ProfileView(View):
         return render(
             request,
             "app/profile.html",
-            {"form": form, "active": "btn-primary", "totalitem": totalitem},
+            {"form": form, "customer": customer, "active": "btn-primary", "totalitem": totalitem},
         )
-
 
     def post(self, request):
         totalitem = Cart.objects.filter(user=request.user).count()
         try:
             customer = Customer.objects.get(user=request.user)
-            form = CustomerProfileForm(request.POST, instance=customer)
+            form = CustomerProfileForm(request.POST, request.FILES, instance=customer)
         except Customer.DoesNotExist:
-            form = CustomerProfileForm(request.POST)
+            form = CustomerProfileForm(request.POST, request.FILES)
 
         if form.is_valid():
             customer = form.save(commit=False)
@@ -316,7 +314,7 @@ class ProfileView(View):
         return render(
             request,
             "app/profile.html",
-            {"form": form, "active": "btn-primary", "totalitem": totalitem},
+            {"form": form, "customer": customer, "active": "btn-primary", "totalitem": totalitem},
         )
 
 

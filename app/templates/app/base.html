@@ -120,7 +120,7 @@
             <li><a class="dropdown-item" href="{% url 'profile' %}">Profile</a></li>
             <li><a class="dropdown-item" href="{% url 'orders' %}">Orders</a></li>
             <li><a class="dropdown-item" href="{% url 'passwordchange' %}">Change Password</a></li>
-            <li><a class="dropdown-item" href="{% url 'logout' %}">Logout</a></li>
+            <li><a class="dropdown-item" id="logout-link" href="{% url 'logout' %}">Logout</a></li>
           </ul>
         </li>
         <li class="nav-item">
@@ -166,6 +166,31 @@
     <script src="{% static 'app/js/all.min.js' %}"></script>
     <script src="{% static 'app/js/myscript.js' %}"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+<script>
+  document.getElementById('logout-link').addEventListener('click', function(event) {
+      event.preventDefault();
+      fetch("{% url 'logout' %}", {
+          method: 'POST',  // Change method to POST
+          headers: {
+              'X-CSRFToken': '{{ csrf_token }}',
+              'Content-Type': 'application/x-www-form-urlencoded', // Add this line
+          },
+          body: new URLSearchParams({
+              'csrfmiddlewaretoken': '{{ csrf_token }}',  // Include CSRF token in body
+          }),
+      }).then(response => {
+          if (response.ok) {
+              // Redirect to login page or another page as needed
+              window.location.href = "{% url 'login' %}";
+          } else {
+              console.error('Logout request failed');
+          }
+      }).catch(error => {
+          console.error('Error during logout request:', error);
+      });
+  });
+  </script>
     <script>
       $(document).ready(function() {
         // Fetch company information using AJAX

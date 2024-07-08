@@ -1,7 +1,7 @@
 # serializers.py
 from rest_framework import serializers
 
-from .models import CompanyDetail, Product
+from .models import CompanyDetail, Product, Address
 
 
 class CompanyDetailSerializer(serializers.ModelSerializer):
@@ -24,3 +24,10 @@ class ProductSerializer(serializers.ModelSerializer):
             ) * 100
             return round(discount_percentage, 2)  # Round to 2 decimal places
         return 0
+
+
+
+class AddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Address
+        fields = '__all__'

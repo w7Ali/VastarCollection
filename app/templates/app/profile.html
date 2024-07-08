@@ -40,9 +40,58 @@
           <p {% if message.tags %} class="alert alert-{{ message.tags }} mb-5" {% endif %}>{{ message }}</p>
           {% endfor %}
           {% endif %}
+          <!-- Address selection form -->
+          <form id="setActiveAddressForm" method="post" action="{% url 'set-active-address' %}">
+            {% csrf_token %}
+            <div class="form-group col-lg-6 mb-3">
+              <label for="addressSelect">Select Active Address:</label>
+              <select class="form-control" id="addressSelect" name="address_id">
+                {% for ad in addresses %}
+                <option value="{{ ad.id }}" {% if ad.is_active %}selected{% endif %}>
+                  {{ ad.locality }}, {{ ad.city }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-12 mt-3">
+              <button type="submit" class="btn btn-primary">Set Active</button>
+            </div>
+          </form>
+          <div id="setActiveAddressMessage" class="mt-3"></div>
         </div>
       </div>
     </div>
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const setActiveAddressForm = document.getElementById('setActiveAddressForm');
+  setActiveAddressForm.addEventListener('submit', function(event) {
+    event.preventDefault();
+    const formData = new FormData(setActiveAddressForm);
+    fetch(setActiveAddressForm.action, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(Object.fromEntries(formData.entries()))
+    })
+    .then(response => response.json())
+    .then(data => {
+      const messageDiv = document.getElementById('setActiveAddressMessage');
+      if (data.success) {
+        messageDiv.innerHTML = '<div class="alert alert-success">Active address set successfully.</div>';
+      } else {
+        messageDiv.innerHTML = '<div class="alert alert-danger">Failed to set active address.</div>';
+      }
+    })
+    .catch(error => {
+      const messageDiv = document.getElementById('setActiveAddressMessage');
+      messageDiv.innerHTML = '<div class="alert alert-danger">Error: ' + error.message + '</div>';
+    });
+  });
+});
+</script>
 {% endblock main-content %}

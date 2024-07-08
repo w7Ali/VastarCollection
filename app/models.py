@@ -27,12 +27,14 @@ class Address(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     full_name = models.CharField(max_length=200)
     mobile_number = models.BigIntegerField(blank=True, null=True)
+    # house_number = models.CharField(max_length=200)
+    # street_number = models.CharField(max_length=200)
     locality = models.CharField(max_length=200)
     land_mark =  models.CharField(max_length=200)
     city = models.CharField(max_length=50)
     zipcode = models.IntegerField()
     state = models.CharField(choices=STATE_CHOICES, max_length=50)
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=False)
 
 
 class CompanyDetail(models.Model):

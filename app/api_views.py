@@ -69,3 +69,50 @@ def latest_and_discount_product(request):
         "highest_discount_products": highest_discount_serializer.data,
     }
     return Response(data)
+
+
+from .models import Address
+from .serializers import AddressSerializer
+
+
+@api_view(['PUT', 'PATCH'])
+def update_address(request, id):
+    try:
+        address = Address.objects.get(pk=id)
+    except Address.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    serializer = AddressSerializer(address, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['DELETE'])
+def delete_address(request, id):
+    try:
+        address = Address.objects.get(pk=id)
+    except Address.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    address.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+@api_view(['POST'])
+def set_active_address(request):
+    user = request.user
+    address_id = request.data.get('address_id')
+
+    try:
+        address = Address.objects.get(id=address_id, user=user)
+    except Address.DoesNotExist:
+        return Response({'success': False, 'error': 'Address not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    # Deactivate all addresses for this user
+    Address.objects.filter(user=user).update(is_active=False)
+
+    # Set the selected address as active
+    address.is_active = True
+    address.save()
+
+    return Response({'success': True}, status=status.HTTP_200_OK)

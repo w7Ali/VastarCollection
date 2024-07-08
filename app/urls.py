@@ -3,7 +3,7 @@ from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 from django.urls import path
 
-from app import serializer_views, views
+from app import api_views, views
 
 from .forms import (
     LoginForm,
@@ -93,7 +93,11 @@ urlpatterns = [
         name="customerregistration",
     ),
     path(
-        "api/company/", serializer_views.company_detail_api, name="company-detail-api"
+        "api/company/", api_views.company_detail_api, name="company-detail-api"
     ),
-    path("api/products", serializer_views.latest_and_discount_product, name="product"),
+    path("api/products", api_views.latest_and_discount_product, name="product"),
+    path('api/address/<int:id>/update/', api_views.update_address, name='api-update-address'),
+    path('api/address/<int:id>/delete/', api_views.delete_address, name='api-delete-address'),
+    path('api/address/set-active/', api_views.set_active_address, name='set-active-address'),
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

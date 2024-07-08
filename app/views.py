@@ -276,6 +276,8 @@ class CustomerRegistrationView(View):
                 return redirect('home')  # Redirect to the home page after successful registration and login
 
         return render(request, "app/customerregistration.html", {"form": form})
+
+
 @method_decorator(login_required, name="dispatch")
 class ProfileView(View):
     def get(self, request):
@@ -289,11 +291,18 @@ class ProfileView(View):
             form = CustomerProfileForm(instance=customer)
         else:
             form = CustomerProfileForm()
+        addresses = Address.objects.filter(user=request.user)
 
         return render(
             request,
             "app/profile.html",
-            {"form": form, "customer": customer, "active": "btn-primary", "totalitem": totalitem},
+            {
+                "form": form,
+                "customer": customer,
+                "addresses": addresses,
+                "active": "btn-primary",
+                "totalitem": totalitem
+            },
         )
 
     def post(self, request):
@@ -327,14 +336,18 @@ def address_view(request):
             address = form.save(commit=False)
             address.user = user
             address.save()
-            return redirect('address') 
+            messages.success(request, "New Address Added Successfully.")
+            return redirect('address')  # Redirect to address page after saving
+        else:
+            print(form.errors)  # Print form errors to debug
+
     else:
         form = AddressForm()
     addresses = Address.objects.filter(user=user)
-    active_address = addresses.filter(is_active=True).first()
+    # active_address = addresses.filter(is_active=True).first()
     context = {
         'form': form,
         'addresses': addresses,
-        'active_address': active_address,
+        # 'active_address': active_address,
     }
     return render(request, 'app/address.html', context)

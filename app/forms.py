@@ -117,13 +117,16 @@ class CustomerProfileForm(forms.ModelForm):
         }
 
 
-class AddressForm(forms.ModelForm):
+class AddressForm(forms.ModelForm):  
     class Meta:
         model = Address
+        # fields = ["full_name", "mobile_number", "house_number","street_number", "locality", "land_mark", "city", "zipcode", "state"]
         fields = ["full_name", "mobile_number", "locality", "land_mark", "city", "zipcode", "state"]
         widgets = {
             "full_name": forms.TextInput(attrs={"class": "form-control"}),
             "mobile_number": forms.NumberInput(attrs={"class": "form-control"}),
+            # "house_number": forms.TextInput(attrs={"class": "form-control"}),
+            # "street_number": forms.TextInput(attrs={"class": "form-control"}),
             "locality": forms.TextInput(attrs={"class": "form-control"}),
             "land_mark": forms.TextInput(attrs={"class": "form-control"}),
             "city": forms.TextInput(attrs={"class": "form-control"}),

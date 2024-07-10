@@ -4,10 +4,10 @@
     $.ajax({
       url: '/api/company/',
       type: 'GET',
-      success: function(data) {
+      success: function (data) {
         // Update 'SEE IT FIRST' section with Font Awesome icon
         $('#see-it-first').html(`
-          <div>
+          <div class="max-sm:mb-3">
             <h3><i class="fas fa-bell"></i> SEE IT FIRST</h3>
             <form>
               <input
@@ -49,9 +49,8 @@
           Copyright &copy; ${new Date().getFullYear()} || Designed By CodeCraft ||
         `);
       },
-      error: function(error) {
+      error: function (error) {
         console.log('Error fetching company data:', error);
       }
-    });
-  });
+    })});
 </script>

@@ -22,7 +22,7 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    fetch("http://127.0.0.1:8000/api/products")
+    fetch("/api/products")
       .then((response) => response.json())
       .then((data) => {
         const carouselInner = document.getElementById("carouselInner");
@@ -47,11 +47,10 @@
                <div class="col-12 col-sm-4   ">
                  <div class="mb-3">
                    <img src="${product1.product_image}" class="carousel-img d-block mw-100 w-100 rounded shadow-sm" alt="${product1.title}">
+                   <div class="d-sm-none">
+                    <a href="/product-detail/${product1.id}/" class="btn" style="background-color: #395839; color: #fff;" >View Details</a>
+                    </div>
                  </div>
-                 <div class="d-sm-none">
-                  <Button class="btn btn-primary ">Visit</Button> 
-                  </div>
-
                </div>
 
                <!-- Information Container -->
@@ -79,6 +78,9 @@
                <div  div class="col-12 col-sm-4 " style="margin-left:50px;">
                  <div class="mb-3 d-none d-md-block">
                    <img src="${product2.product_image}" class="carousel-img d-block mw-100 w-100 rounded shadow-sm" alt="${product2.title}" >
+                   <div class="d-sm-none">
+                       <a href="/product-detail/${product2.id}/" class="btn" style="background-color: #395839; color: #fff;" >View Details</a>
+                   </div>
                  </div>
                </div>
               </div>

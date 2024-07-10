@@ -1,32 +1,17 @@
 {% load static %}
 
 <!-- Centered Container -->
-<div class="container d-flex justify-content-center">
+<div class="container d-flex justify-content-center min-h-100">
   <!-- Banner Slider -->
-  <div
-    id="carouselExampleControls"
-    class="carousel slide"
-    data-bs-ride="carousel"
-    style="max-width: 800px"
-  >
+  <div id="carouselExampleControls" class="carousel slide" data-bs-ride="carousel" style="max-width: 800px">
     <div class="carousel-inner" id="carouselInner">
       <!-- JavaScript will populate carousel items here -->
     </div>
-    <a
-      class="carousel-control-prev"
-      href="#carouselExampleControls"
-      role="button"
-      data-bs-slide="prev"
-    >
+    <a class="carousel-control-prev" href="#carouselExampleControls" role="button" data-bs-slide="prev">
       <span class="carousel-control-prev-icon" aria-hidden="true"></span>
       <span class="visually-hidden">Previous</span>
     </a>
-    <a
-      class="carousel-control-next"
-      href="#carouselExampleControls"
-      role="button"
-      data-bs-slide="next"
-    >
+    <a class="carousel-control-next" href="#carouselExampleControls" role="button" data-bs-slide="next">
       <span class="carousel-control-next-icon" aria-hidden="true"></span>
       <span class="visually-hidden">Next</span>
     </a>
@@ -55,14 +40,18 @@
           const product2 = products[i + 1];
           const activeClass = i === 0 ? "active" : "";
 
-           const carouselItem = `
+          const carouselItem = `
             <div class="carousel-item ${activeClass} mt-5">
              <div class="row">
                <!-- Product Image 1 -->
-               <div class="col-4">
+               <div class="col-12 col-sm-4   ">
                  <div class="mb-3">
-                   <img src="${product1.product_image}" class="carousel-img d-block mw-100 rounded shadow-sm" alt="${product1.title}">
+                   <img src="${product1.product_image}" class="carousel-img d-block mw-100 w-100 rounded shadow-sm" alt="${product1.title}">
                  </div>
+                 <div class="d-sm-none">
+                  <Button class="btn btn-primary ">Visit</Button> 
+                  </div>
+
                </div>
 
                <!-- Information Container -->
@@ -87,9 +76,9 @@
               <!-- End Information Container -->
 
                <!-- Product Image 2 -->
-               <div class="col-4" style="margin-left:50px;">
-                 <div class="mb-3">
-                   <img src="${product2.product_image}" class="carousel-img d-block mw-100 rounded shadow-sm" alt="${product2.title}" >
+               <div  div class="col-12 col-sm-4 " style="margin-left:50px;">
+                 <div class="mb-3 d-none d-md-block">
+                   <img src="${product2.product_image}" class="carousel-img d-block mw-100 w-100 rounded shadow-sm" alt="${product2.title}" >
                  </div>
                </div>
               </div>
@@ -122,21 +111,26 @@
 <style>
   /* Custom CSS for carousel items */
   .carousel-item .col-4 {
-    position: relative;
+    /* position: relative; */
   }
 
   .carousel-item img {
-    height: 400px; /* Larger image height */
+    height: 400px;
+    /* Larger image height */
     object-fit: cover;
   }
 
   .carousel-caption {
-    position: relative; /* Adjust as needed */
-    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
-    color: #fff; /* Text color */
+    position: relative;
+    /* Adjust as needed */
+    background-color: rgba(0, 0, 0, 0.5);
+    /* Semi-transparent background */
+    color: #fff;
+    /* Text color */
     padding: 10px;
   }
-  .carousel-img:hover{
+
+  .carousel-img:hover {
     filter: blur(4px);
   }
 </style>

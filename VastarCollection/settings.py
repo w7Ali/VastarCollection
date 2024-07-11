@@ -13,11 +13,14 @@ DEBUG = os.getenv("DEBUG")
 # ALLOWED_HOSTS = [os.getenv("ALLOWED_HOSTS")]
 ALLOWED_HOSTS= ['*']
 # CSRF_TRUSTED_ORIGINS = [os.getenv("CSRF_TRUSTED_ORIGINS")] 
+CSRF_TRUSTED_ORIGINS = ['https://2c7d-125-62-126-254.ngrok-free.app']
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    # "jet",
+    "jazzmin",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",

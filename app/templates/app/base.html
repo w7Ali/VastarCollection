@@ -60,6 +60,11 @@
       border-radius: 0;
       outline: none;
     }
+    @media (max-width:600px) {
+      #about_us{
+        margin-top: 15px;
+      }
+    }
   </style>
 </head>
 
@@ -173,8 +178,8 @@
         success: function (data) {
           // Update 'SEE IT FIRST' section with Font Awesome icon
           $('#see-it-first').html(`
-              <div class="row">
-                <div class="col-12 col-sm-6"> 
+              <div class="row" >
+                <div class="col-12 sm-6"> 
                 <h3><i class="fas fa-bell"></i> SEE IT FIRST</h3>
                 <form style="display: flex;">
                   <input
@@ -195,7 +200,7 @@
 
           // Update 'About Us' section with Font Awesome icon
           $('#about-us').html(`
-            <div class="col-12 sm-6 mt-3">
+            <div class="col-12 sm-6" id="about_us">
               <h3> About Us</h3>
               <div class="d-flex gap-2">
                 <div > 

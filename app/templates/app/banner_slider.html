@@ -53,11 +53,10 @@ for (let i = 0; i < products.length; i += 2) {
               <h5 class="fw-bold">${product1.title}</h5>
               <p>₹ <s class="text-muted">${product1.selling_price}</s> <span class="text-danger fw-bold">₹ ${product1.discounted_price}</span></p>
               <p class="fs-6 text-success">${product1.discount_percentage.toFixed(2)}% Off</p>
-              <a href="/product-detail/${product1.id}/" class="btn" style="background-color: #395839; color: #fff;">View Details</a>
-            </div>
-
-            <!-- View details button for larger screens -->
-           
+              <div class="d-flex justify-content-center">
+                <a href="/product-detail/${product1.id}/" class="btn d-flex justify-content-center" style="background-color: #395839; color: #fff; text-align: center;">View Details</a>
+              </div>
+            </div>           
           </div>
         </div>
         
@@ -85,9 +84,17 @@ for (let i = 0; i < products.length; i += 2) {
         <div class="col-12 col-sm-4" style="margin-left:50px;">
           <div class="mb-3 d-none d-md-block">
             <img src="${product2.product_image}" class="carousel-img d-block mw-100 w-100 rounded shadow-sm" alt="${product2.title}">
+            <!-- Product details for small screens -->
             <div class="d-sm-none">
-              <a href="/product-detail/${product2.id}/" class="btn" style="background-color: #395839; color: #fff;">View Details</a>
-            </div>
+              <h5 class="fw-bold">${product2.title}</h5>
+              <p>₹ <s class="text-muted">${product2.selling_price}</s> <span class="text-danger fw-bold">₹ ${product1.discounted_price}</span></p>
+              <p class="fs-6 text-success">${product2.discount_percentage.toFixed(2)}% Off</p>
+              <div class="d-flex justify-content-center">
+                <a href="/product-detail/${product2.id}/" class="btn d-flex justify-content-center" style="background-color: #395839; color: #fff; text-align: center;">View Details</a>
+              </div>
+            </div>      
+            
+          
           </div>
         </div>
       </div>

@@ -2,8 +2,9 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from .models import CompanyDetail, Product
-from .serializers import CompanyDetailSerializer, ProductSerializer
+from .models import CompanyDetail, Product, Address
+from .serializers import CompanyDetailSerializer, ProductSerializer, AddressSerializer
+from django.db.models import ExpressionWrapper, F, FloatField
 
 
 @api_view(["GET"])
@@ -21,12 +22,6 @@ def company_detail_api(request):
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-from django.db.models import ExpressionWrapper, F, FloatField
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-
-from .models import Product
-from .serializers import ProductSerializer
 
 
 def calculate_discount_percentage(selling_price, discounted_price):
@@ -41,11 +36,11 @@ def calculate_discount_percentage(selling_price, discounted_price):
 
 @api_view(["GET"])
 def latest_and_discount_product(request):
-    # Retrieve 4 latest products
-    latest_products = Product.objects.order_by("-id")[:4]
+    # Retrieve 8 latest products
+    latest_products = Product.objects.order_by("-id")[:8]
     latest_serializer = ProductSerializer(latest_products, many=True)
 
-    # Retrieve 2 products with highest percentage discount
+    # Retrieve 4 products with highest percentage discount
     highest_discount_products = (
         Product.objects.annotate(
             discount_percentage=ExpressionWrapper(
@@ -56,7 +51,7 @@ def latest_and_discount_product(request):
             )
         )
         .exclude(discounted_price__isnull=True, discounted_price=0)
-        .order_by("-discount_percentage")[:2]
+        .order_by("-discount_percentage")[:4]
     )
 
     highest_discount_serializer = ProductSerializer(
@@ -71,8 +66,6 @@ def latest_and_discount_product(request):
     return Response(data)
 
 
-from .models import Address
-from .serializers import AddressSerializer
 
 
 @api_view(['PUT', 'PATCH'])

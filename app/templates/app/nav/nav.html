@@ -14,26 +14,14 @@
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-          <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="/">Home</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link active" onclick="showSection('menSection')" href="#men_wear">Men's Wear</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link active" onclick="showSection('womenSection')" href="#women_wear">Women</a>
-          </li>
-        </ul>
-        <form class="search-form d-flex align-items-center">
-          <input
-            class="search-input form-control me-2"
-            type="search"
-            placeholder="Search"
-            aria-label="Search"
-          />
-          <i class="fas fa-search search-icon" style="color: #fff; cursor: pointer;"></i>
-        </form>
+        {% block search %}
+            {% if current_page == 'home' %}
+                {% include 'app/nav/home_nav.html' %}
+            {% else %}
+                {% include 'app/nav/global_nav.html' %}
+            {% endif %}
+       {% endblock search %}
+       
         <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
           {% if request.user.is_authenticated %}
           <li class="nav-item dropdown">

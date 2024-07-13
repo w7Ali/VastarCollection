@@ -1,0 +1,26 @@
+   <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+    <li class="nav-item">
+      <a class="nav-link active" aria-current="page" href="/">Home</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link active" onclick="scrollToSection('menSection')" href="#men_wear">Men's Wear</a>
+      <!-- <a class="nav-link" href="/#men_wear">Men's Wear</a> -->
+    </li>
+    <li class="nav-item">
+      <a class="nav-link active" onclick="scrollToSection('womenSection')" href="#women_wear">Women</a>
+    </li>
+  </ul>
+  <script>
+
+ // JavaScript function to show only the selected section and hide others
+ function scrollToSection(sectionId) {
+    window.location.href = '/';
+
+    var sections = document.getElementsByClassName('section-content');
+    for (var i = 0; i < sections.length; i++) {
+      sections[i].style.display = 'none';
+    }
+    document.getElementById(sectionId).style.display = 'block';
+  }
+
+  </script>

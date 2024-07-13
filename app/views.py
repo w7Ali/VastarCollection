@@ -9,13 +9,15 @@ from django.contrib.auth import authenticate#, login
 
 from .forms import CustomerProfileForm, CustomerRegistrationForm, AddressForm
 from .models import Cart, Customer, OrderPlaced, Product, ProductVariation, Address
-
+from django.core import serializers
 
 class ProductView(View):
     def get(self, request):
         totalitem = 0
         mens_wear = Product.objects.filter(category="MW")
         womens_wear = Product.objects.filter(category="WW")
+        allProducts = Product.objects.all()
+        allProducts = serializers.serialize('json',allProducts)
         if request.user.is_authenticated:
             totalitem = len(Cart.objects.filter(user=request.user))
         return render(
@@ -24,6 +26,8 @@ class ProductView(View):
             {
                 "mens_wear": mens_wear,
                 "womens_wear": womens_wear,
+                "allProducts": allProducts,
+                "current_page" : "home", 
             },
         )
 
@@ -124,12 +128,7 @@ def plus_cart(request):
         cart_product = [p for p in Cart.objects.all() if p.user == request.user]
         for p in cart_product:
             tempamount = p.quantity * p.product.discounted_price
-            # print("Quantity", p.quantity)
-            # print("Selling Price", p.product.discounted_price)
-            # print("Before", amount)
             amount += tempamount
-            # print("After", amount)
-        # print("Total", amount)
         data = {
             "quantity": c.quantity,
             "amount": amount,
@@ -151,12 +150,9 @@ def minus_cart(request):
         cart_product = [p for p in Cart.objects.all() if p.user == request.user]
         for p in cart_product:
             tempamount = p.quantity * p.product.discounted_price
-            # print("Quantity", p.quantity)
-            # print("Selling Price", p.product.discounted_price)
-            # print("Before", amount)
+
             amount += tempamount
-            # print("After", amount)
-        # print("Total", amount)
+
         data = {
             "quantity": c.quantity,
             "amount": amount,
@@ -216,12 +212,8 @@ def remove_cart(request):
         cart_product = [p for p in Cart.objects.all() if p.user == request.user]
         for p in cart_product:
             tempamount = p.quantity * p.product.discounted_price
-            # print("Quantity", p.quantity)
-            # print("Selling Price", p.product.discounted_price)
-            # print("Before", amount)
             amount += tempamount
-            # print("After", amount)
-        # print("Total", amount)
+
         data = {"amount": amount, "totalamount": amount + shipping_amount}
         return JsonResponse(data)
     else:
@@ -234,25 +226,25 @@ def orders(request):
     return render(request, "app/orders.html", {"order_placed": op})
 
 
-def mobile(request, data=None):
-    totalitem = 0
-    if request.user.is_authenticated:
-        totalitem = len(Cart.objects.filter(user=request.user))
-    if data == None:
-        mobiles = Product.objects.filter(category="M")
-    elif data == "Redmi" or data == "Samsung":
-        mobiles = Product.objects.filter(category="M").filter(brand=data)
-    elif data == "below":
-        mobiles = Product.objects.filter(category="M").filter(
-            discounted_price__lt=10000
-        )
-    elif data == "above":
-        mobiles = Product.objects.filter(category="M").filter(
-            discounted_price__gt=10000
-        )
-    return render(
-        request, "app/mobile.html", {"mobiles": mobiles, "totalitem": totalitem}
-    )
+# def mobile(request, data=None):
+#     totalitem = 0
+#     if request.user.is_authenticated:
+#         totalitem = len(Cart.objects.filter(user=request.user))
+#     if data == None:
+#         mobiles = Product.objects.filter(category="M")
+#     elif data == "Redmi" or data == "Samsung":
+#         mobiles = Product.objects.filter(category="M").filter(brand=data)
+#     elif data == "below":
+#         mobiles = Product.objects.filter(category="M").filter(
+#             discounted_price__lt=10000
+#         )
+#     elif data == "above":
+#         mobiles = Product.objects.filter(category="M").filter(
+#             discounted_price__gt=10000
+#         )
+#     return render(
+#         request, "app/mobile.html", {"mobiles": mobiles, "totalitem": totalitem}
+#     )
 
 
 class CustomerRegistrationView(View):
@@ -338,8 +330,6 @@ def address_view(request):
             address.save()
             messages.success(request, "New Address Added Successfully.")
             return redirect('address')  # Redirect to address page after saving
-        else:
-            print(form.errors)  # Print form errors to debug
 
     else:
         form = AddressForm()

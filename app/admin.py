@@ -1,4 +1,8 @@
+from django.contrib.admin import ModelAdmin
 from django.contrib import admin
+
+# from unfold.admin import ModelAdmin
+
 from django.urls import reverse
 from django.utils.html import format_html
 
@@ -14,14 +18,14 @@ from .models import (
 
 
 @admin.register(Customer)
-class CustomerModelAdmin(admin.ModelAdmin):
+class CustomerModelAdmin(ModelAdmin):
     list_display = ["id", "user", "first_name", "last_name", "city", "mobile_number"]
     search_fields = ["first_name", "last_name", "city", "mobile_number"]
     list_filter = ["city"]
 
 
 @admin.register(Address)
-class AddressModelAdmin(admin.ModelAdmin):
+class AddressModelAdmin(ModelAdmin):
     list_display = [
         "id",
         "user",
@@ -40,7 +44,7 @@ class AddressModelAdmin(admin.ModelAdmin):
 
 
 @admin.register(Product)
-class ProductModelAdmin(admin.ModelAdmin):
+class ProductModelAdmin(ModelAdmin):
     list_display = [
         "id",
         "title",
@@ -54,12 +58,12 @@ class ProductModelAdmin(admin.ModelAdmin):
 
 
 @admin.register(Cart)
-class CartModelAdmin(admin.ModelAdmin):
+class CartModelAdmin(ModelAdmin):
     list_display = ["id", "user", "product", "quantity"]
 
 
 @admin.register(OrderPlaced)
-class OrderPlacedModelAdmin(admin.ModelAdmin):
+class OrderPlacedModelAdmin(ModelAdmin):
     list_display = [
         "id",
         "user",
@@ -82,7 +86,7 @@ class OrderPlacedModelAdmin(admin.ModelAdmin):
 
 
 @admin.register(CompanyDetail)
-class CompanyDetailAdmin(admin.ModelAdmin):
+class CompanyDetailAdmin(ModelAdmin):
     list_display = (
         "name",
         "office_address",
@@ -122,5 +126,5 @@ class CompanyDetailAdmin(admin.ModelAdmin):
 
 
 @admin.register(ProductVariation)
-class ProductVariationAdmin(admin.ModelAdmin):
+class ProductVariationAdmin(ModelAdmin):
     list_display = ["id", "product", "size", "color", "pieces_remaining"]

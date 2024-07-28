@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from django.shortcuts import HttpResponse, get_object_or_404, redirect, render
 from django.utils.decorators import method_decorator
 from django.views import View
-from django.contrib.auth import authenticate#, login
+from django.contrib.auth import authenticate
 
 from .forms import CustomerProfileForm, CustomerRegistrationForm, AddressForm
 from .models import Cart, Customer, OrderPlaced, Product, ProductVariation, Address
@@ -36,8 +36,6 @@ class ProductDetailView(View):
     def get(self, request, pk):
         totalitem = 0
         product = get_object_or_404(Product, pk=pk)
-
-        # Check if there is a ProductVariation for the product
         try:
             product_variation = ProductVariation.objects.filter(product=product)
             availability = True
@@ -166,7 +164,7 @@ def minus_cart(request):
 @login_required
 def checkout(request):
     user = request.user
-    add = Customer.objects.filter(user=user)
+    add = Address.objects.filter(user=user)
     cart_items = Cart.objects.filter(user=request.user)
     amount = 0.0
     shipping_amount = 70.0
@@ -224,27 +222,6 @@ def remove_cart(request):
 def orders(request):
     op = OrderPlaced.objects.filter(user=request.user)
     return render(request, "app/orders.html", {"order_placed": op})
-
-
-# def mobile(request, data=None):
-#     totalitem = 0
-#     if request.user.is_authenticated:
-#         totalitem = len(Cart.objects.filter(user=request.user))
-#     if data == None:
-#         mobiles = Product.objects.filter(category="M")
-#     elif data == "Redmi" or data == "Samsung":
-#         mobiles = Product.objects.filter(category="M").filter(brand=data)
-#     elif data == "below":
-#         mobiles = Product.objects.filter(category="M").filter(
-#             discounted_price__lt=10000
-#         )
-#     elif data == "above":
-#         mobiles = Product.objects.filter(category="M").filter(
-#             discounted_price__gt=10000
-#         )
-#     return render(
-#         request, "app/mobile.html", {"mobiles": mobiles, "totalitem": totalitem}
-#     )
 
 
 class CustomerRegistrationView(View):

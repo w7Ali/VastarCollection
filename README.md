@@ -1,4 +1,4 @@
-# VastarCollection
+# Shivay International
 > E-commerce Website 
 > To sell men and women wears
 > Specially deals with winter wears

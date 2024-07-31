@@ -73,7 +73,7 @@ WSGI_APPLICATION = os.getenv("WSGI_APPLICATION")
 DATABASES = {
     "default": {
         "ENGINE": os.getenv('DB_ENGINE'),
-        "NAME": BASE_DIR / "db.sqlite3",
+        "NAME": BASE_DIR / "vscdb/db.sqlite3",
     }
 }
 

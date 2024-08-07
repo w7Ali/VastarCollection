@@ -1,147 +1,290 @@
 {% extends 'app/base.html' %}
-
+ 
 {% load static %}
-
+ 
 {% block title %}
-  Home
-{% endblock title %}
 
+  Home
+
+{% endblock title %}
+ 
 {% block extra_css %}
 
   <style>
-    /* Custom CSS for product cards */  new
+
+    /* Custom CSS for product cards */
+
     .product-card {
+
       border: 1px solid #ddd;
+
       transition: box-shadow 0.3s ease-in-out;
-    }
 
+    }
+ 
     .product-card:hover {
+
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
 
+    }
+ 
     .product-card img {
+
       max-height: 250px;
+
       object-fit: cover;
-    }
 
+    }
+ 
     .product-card .card-body {
+
       padding: 1.25rem;
-    }
 
+    }
+ 
     .product-card .card-title {
+
       font-size: 1.5rem;
-      font-weight: bold;
-      color: #333;
-      margin-bottom: 0.75rem; /* Adjust margin for spacing */
-    }
 
+      font-weight: bold;
+
+      color: #333;
+
+      margin-bottom: 0.75rem;
+
+    }
+ 
     .product-card .card-text {
-      color: #666;
-      font-size: 0.875rem;
-      margin-bottom: 1rem; /* Adjust margin for spacing */
-    }
 
+      color: #666;
+
+      font-size: 0.875rem;
+
+      margin-bottom: 1rem;
+
+    }
+ 
     .product-card .list-group-item {
+
       border: none;
-      padding: 0.5rem 1.25rem;
-      font-size: 0.875rem;
-      color: #666;
-    }
 
+      padding: 0.5rem 1.25rem;
+
+      font-size: 0.875rem;
+
+      color: #666;
+
+    }
+ 
     .product-card .list-group-item:first-child {
+
       border-top: 1px solid #ddd;
-    }
 
+    }
+ 
     .product-card .list-group-item:last-child {
+
       border-bottom: 1px solid #ddd;
-    }
 
+    }
+ 
     .product-card .btn {
+
       font-size: 0.875rem;
+
       padding: 0.5rem 1.25rem;
+
       border-radius: 20px;
+
       transition: background-color 0.3s ease-in-out;
-    }
 
+    }
+ 
     .product-card .btn-primary {
+
       background-color: #007bff;
+
       border-color: #007bff;
+
       color: #fff;
-    }
 
+    }
+ 
     .product-card .btn-primary:hover {
+
       background-color: #0056b3;
+
       border-color: #0056b3;
-    }
 
+    }
+ 
     .product-card .btn-outline-secondary {
+
       color: #666;
-      border-color: #ccc;
-    }
 
+      border-color: #ccc;
+
+    }
+ 
     .product-card .btn-outline-secondary:hover {
+
       background-color: #f8f9fa;
+
       color: #333;
+
       border-color: #ccc;
-    }
 
-    /* Custom styles for specific elements */
+    }
+ 
     .product-card .text-orange {
+
       color: orange;
-    }
 
+    }
+ 
     .product-card .text-green {
+
       color: green;
-    }
 
+    }
+ 
     .product-card .fw-bold {
-      font-weight: bold;
-    }
-  </style>
-{% endblock extra_css %}
 
+      font-weight: bold;
+
+    }
+
+  </style>
+
+{% endblock extra_css %}
+ 
 {% block livesale %}
-  <!-- Live Sale Section -->
+
 <div style="width: 100%; overflow-x: hidden;">
+
   <div class="container-fluid row text-center p-2 text-white border-bottom shadow" style="background-color: #163020; margin: 0; padding: 0;">
+
     <h6 class="col-12">SALE | 5% Instant Discount on Axis Bank Credit and Debit Card</h6>
+
   </div>
+
 </div>
-<!-- End Live Sale Section -->
 
 {% endblock livesale %}
+ 
+{% block banner_slider %}
 
-  {% block banner_slider %}
-    <!-- Banner Slider -->
-   {% include 'app/banner_slider.html' %}
-    <!-- End Banner Slider -->
-  {% endblock banner_slider %}
+{% include 'app/banner_slider.html' %}
 
+{% endblock banner_slider %}
+ 
 {% block main-content %}
-<div class="mt-5">
-  <!-- Women's Wear Formal Jacket -->
-  <div id="womenSection" class="section-content" style="display: none;">
-    {% include 'app/women_wear.html' %}
+
+<div class="container mt-5">
+
+  <div class="row">
+
+    {% for product in page_obj %}
+
+      <div class="col-6 col-md-4 mb-4">
+
+        <div class="card product-card h-100 border-0 shadow-sm">
+
+          <img src="{{ product.product_image.url }}" class="card-img-top" alt="Product Image">
+
+          <div class="card-body">
+
+            <h5 class="card-title">{{ product.title }}</h5>
+
+            <p class="card-text">{{ product.description }}</p>
+
+          </div>
+
+          <ul class="list-group list-group-flush">
+
+            <li class="list-group-item border-0"><i class="fas fa-tag"></i> Brand: <span class="fw-bold">{{ product.brand }}</span></li>
+
+            <li class="list-group-item border-0 text-muted"><del>Selling Price: ₹ {{ product.selling_price }}</del></li>
+
+            <li class="list-group-item border-0">
+
+              <span class="badge bg-primary fs-7 py-2"><i class="fas fa-percentage"></i> {{ product.discount_percent }} % Off</span>
+
+            </li>
+
+            <li class="list-group-item border-0 text-orange fw-bold"><i class="fas fa-tag"></i> Discounted Price: <span class="text-success">₹ {{ product.discounted_price }}</span></li>
+
+          </ul>
+
+          <div class="card-footer bg-transparent border-0 text-center">
+
+            <a href="{% url 'product-detail' product.id %}" class="btn" style="background-color: #395839; color: #fff;">View Details</a>
+
+            <a href="#" class="btn btn-outline-secondary">Add to Cart</a>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    {% endfor %}
+
   </div>
-  <!-- End Women's Wear Formal Jacket -->
+ 
+  <nav aria-label="Page navigation example">
+    <ul class="pagination justify-content-center">
+      {% if page_obj.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?page=1" aria-label="First">
+            <span aria-hidden="true">&laquo; first</span>
+          </a>
+        </li>
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+            <span aria-hidden="true">previous</span>
+          </a>
+        </li>
+      {% else %}
+        <li class="page-item disabled">
+          <span class="page-link">&laquo; first</span>
+        </li>
+        <li class="page-item disabled">
+          <span class="page-link">previous</span>
+        </li>
+      {% endif %}
+  
+      <li class="page-item disabled">
+        <span class="page-link">
+          Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+        </span>
+      </li>
+  
+      {% if page_obj.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+            <span aria-hidden="true">next</span>
+          </a>
+        </li>
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Last">
+            <span aria-hidden="true">last &raquo;</span>
+          </a>
+        </li>
+      {% else %}
+        <li class="page-item disabled">
+          <span class="page-link">next</span>
+        </li>
+        <li class="page-item disabled">
+          <span class="page-link">last &raquo;</span>
+        </li>
+      {% endif %}
+    </ul>
+  </nav>
+  
 
-  <!-- Men's Wear Formal Jacket -->
-  <div id="menSection" class="section-content" style="display: none;">
-    {% include 'app/men_wear.html' %}
-  </div>
-  <!-- End Men's Wear Formal Jacket -->
-
-  <!-- Buttons to toggle sections -->
-
-<script>
-  // JavaScript function to show only the selected section and hide others
-  function showSection(sectionId) {
-    var sections = document.getElementsByClassName('section-content');
-    for (var i = 0; i < sections.length; i++) {
-      sections[i].style.display = 'none';
-    }
-    document.getElementById(sectionId).style.display = 'block';
-  }
-</script>
+</div>
 
 {% endblock main-content %}
+
+ 

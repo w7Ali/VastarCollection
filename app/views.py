@@ -10,27 +10,79 @@ from django.contrib.auth import authenticate
 from .forms import CustomerProfileForm, CustomerRegistrationForm, AddressForm
 from .models import Cart, Customer, OrderPlaced, Product, ProductVariation, Address
 from django.core import serializers
+from django.core.paginator import Paginator
+from django.shortcuts import render
+from .models import Product
 
+# class ProductView(View):
+#     def get(self, request):
+#         totalitem = 0
+#         mens_wear = Product.objects.filter(category="MW")
+#         womens_wear = Product.objects.filter(category="WW")
+#         allProducts = Product.objects.all()
+#         allProducts = serializers.serialize('json',allProducts)
+#         if request.user.is_authenticated:
+#             totalitem = len(Cart.objects.filter(user=request.user))
+#         return render(
+#             request,
+#             "app/home.html",
+#             {
+#                 "mens_wear": mens_wear,
+#                 "womens_wear": womens_wear,
+#                 "allProducts": allProducts,
+#                 "current_page" : "home", 
+#             },
+#         )
+
+import random
+
+from django.core.paginator import Paginator
+ 
 class ProductView(View):
+
     def get(self, request):
+
         totalitem = 0
-        mens_wear = Product.objects.filter(category="MW")
-        womens_wear = Product.objects.filter(category="WW")
-        allProducts = Product.objects.all()
-        allProducts = serializers.serialize('json',allProducts)
+
+        mens_wear = list(Product.objects.filter(category="MW"))
+
+        womens_wear = list(Product.objects.filter(category="WW"))
+
+        # Combine and shuffle the products
+
+        combined_products = mens_wear + womens_wear
+
+        random.shuffle(combined_products)
+
+        # Paginate the combined products to show only up to 20 items per page
+
+        paginator = Paginator(combined_products, 12)  # Show 20 products per page
+
+        page_number = request.GET.get('page')
+
+        page_obj = paginator.get_page(page_number)
+
         if request.user.is_authenticated:
-            totalitem = len(Cart.objects.filter(user=request.user))
+
+            totalitem = Cart.objects.filter(user=request.user).count()
+
         return render(
+
             request,
+
             "app/home.html",
+
             {
-                "mens_wear": mens_wear,
-                "womens_wear": womens_wear,
-                "allProducts": allProducts,
-                "current_page" : "home", 
+
+                "page_obj": page_obj,
+
+                "totalitem": totalitem,
+
             },
+
         )
 
+ 
 
 class ProductDetailView(View):
     def get(self, request, pk):
@@ -325,3 +377,35 @@ def terms_conditions(request):
 def privacy(request):
     return render(request, 'app/privacy.html')
 
+# def men_collection(request):
+#     mens_wear = Product.objects.filter(category="MW")
+#     return render(request, 'app/men_collection.html', {"mens_wear": mens_wear})
+        
+
+# def women_collection(request):
+#     womens_wear = Product.objects.filter(category="WW")
+#     return render(request, 'app/women_collection.html',{"womens_wear": womens_wear,})
+
+ 
+def men_collection(request):
+
+    mens_wear = Product.objects.filter(category="MW")
+
+    paginator = Paginator(mens_wear, 12)  # Show 20 products per page
+
+    page_number = request.GET.get('page')
+
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'app/men_collection.html', {"page_obj": page_obj})
+ 
+def women_collection(request):
+
+    womens_wear = Product.objects.filter(category="WW")
+
+    paginator = Paginator(womens_wear, 12)  # Show 20 products per page
+
+    page_number = request.GET.get('page')
+
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'app/women_collection.html', {"page_obj": page_obj})
+ 

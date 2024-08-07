@@ -1,15 +1,13 @@
 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-    <li class="nav-item">
-      <a class="nav-link active" aria-current="page" href="/">Home</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link active" onclick="showSection('menSection')" href="#men_wear">Men's Wear</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link active" onclick="showSection('womenSection')" href="#women_wear">Women</a>
-    </li>
-  </ul>
-  <form>
-    <input type="text" class="search-input" id="search" name="search" value="Search for Product...">
-    <i class="fas fa-search search-icon" style="color: #fff; cursor: pointer;"></i>
-  </form>
+  <li class="nav-item">
+    <a class="nav-link active" aria-current="page" href="/">Home</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link active" href="{% url 'men_collection' %}">Men's Wear</a>
+    <!-- <a class="nav-link" href="/#men_wear">Men's Wear</a> -->
+  </li>
+  <li class="nav-item">
+    <a class="nav-link active" href="{% url 'women_collection' %}">Women</a>
+  </li>
+</ul>
+

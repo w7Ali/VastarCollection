@@ -1,245 +1,88 @@
 <!DOCTYPE html>
-{% load static %}
 <html lang="en">
 
 <head>
-  <!-- Required meta tags -->
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+    {% load static %}
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous" />
-  
-  <!-- Owl Carousel CSS -->
-  <link rel="stylesheet" href="{% static 'app/css/owl.carousel.min.css' %}" />
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous" />
+    
+    <!-- FontAwesome CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 
-  <!-- FontAwesome CSS -->
-  <link rel="stylesheet" href="{% static 'app/css/all.min.css' %}" />
+    <!-- Owl Carousel CSS -->
+    <link rel="stylesheet" href="{% static 'app/css/owl.carousel.min.css' %}" />
 
-  <!-- Custom CSS -->
-  <link rel="stylesheet" href="{% static 'app/css/style.css' %}" />
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'app/css/base.css' %}" />
 
-  <!-- jQuery UI CSS -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
-
-  <!-- Font Awesome Icon -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
-
-  <title> shivayinternational.co | {% block title %} {% endblock title %}</title>
-  <style>
-    .search-form {
-      display: flex;
-      align-items: center;
-      position: relative;
-    }
-
-    .search-input {
-      width: 300px;
-      padding: 10px 30px 10px 10px;
-      background-color: #304d30;
-      border: none;
-      border-bottom: 2px solid white;
-      border-radius: 0;
-      outline: none;
-      color: white;
-    }
-
-    .search-input::placeholder {
-      color: white;
-    }
-
-    .search-icon {
-      position: absolute;
-      right: 10px;
-      color: white;
-      cursor: pointer;
-    }
-
-    .email {
-      width: 200px;
-      border: none;
-      border-bottom: 3px solid black;
-      border-radius: 0;
-      outline: none;
-    }
-
-    @media (max-width: 600px) {
-      #about_us {
-        margin-top: 15px;
-      }
-    }
-
-    /* CSS for suggestion container */
-    #suggestions-container {
-      width: 200px;
-      padding: 10px 30px 10px 10px;
-      background-color: #304d30;
-      border: none;
-      border-bottom: 2px solid white;
-      border-radius: 0;
-      outline: none;
-      color: white;
-      z-index: 1000; /* Ensure it's above other content */
-    }
-
-    /* CSS for suggestion items */
-    .suggestion {
-      padding: 10px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-  </style>
+    <title>shivayinternational.co | {% block title %} {% endblock title %}</title>
 </head>
 
 <body>
-{% block nav %}
-{% include 'app/nav/nav.html' %}
-{% endblock nav %}
+    {% block nav %}
+    {% include 'app/nav/nav.html' %}
+    {% endblock nav %}
 
+    {% block livesale %} {% endblock livesale %}
 
-  {% block livesale %} {% endblock livesale %}
-  
-  <!-- container to display the products -->
-  <div id="product-container" class="container product"></div>
-  
-  {% block banner_slider %} {% endblock banner_slider %}
-  {% block main-content %} {% endblock main-content %}
-  {% block payment-gateway %} {% endblock payment-gateway %}
-  <hr>
-  
-  {% block footer %}
-  <!-- Start Footer -->
-  {% include 'app/footer.html' %}
-  <!-- End Footer -->
-  {% endblock footer %}
+    <!-- Container to display the products -->
+    <div id="product-container" class="container product"></div>
 
-  <!-- Include jQuery -->
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  
-  <!-- Bootstrap Bundle with Popper -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>
-  
-  <!-- jQuery UI -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
-  
-  <!-- Owl Carousel -->
-  <script src="{% static 'app/js/owl.carousel.min.js' %}"></script>
-  
-  <!-- Font Awesome -->
-  <script src="{% static 'app/js/all.min.js' %}"></script>
-  
-  <!-- Custom Script -->
-  <script src="{% static 'app/js/myscript.js' %}"></script>
-  
-  <script>
-    document.getElementById('logout-link').addEventListener('click', function (event) {
-      event.preventDefault();
-      fetch("{% url 'logout' %}", {
-        method: 'POST', // Change method to POST
-        headers: {
-          'X-CSRFToken': '{{ csrf_token }}',
-          'Content-Type': 'application/x-www-form-urlencoded', // Add this line
-        },
-        body: new URLSearchParams({
-          'csrfmiddlewaretoken': '{{ csrf_token }}', // Include CSRF token in body
-        }),
-      }).then(response => {
-        if (response.ok) {
-          // Redirect to login page or another page as needed
-          window.location.href = "{% url 'login' %}";
-        } else {
-          console.error('Logout request failed');
-        }
-      }).catch(error => {
-        console.error('Error during logout request:', error);
-      });
-    });
+    {% block banner_slider %} {% endblock banner_slider %}
+    {% block main-content %} {% endblock main-content %}
+    {% block payment-gateway %} {% endblock payment-gateway %}
+    <hr>
 
-    $(document).ready(function () {
-      // Fetch company information using AJAX
-      $.ajax({
-        url: '/api/company/',
-        type: 'GET',
-        success: function (data) {
-          // Update 'SEE IT FIRST' section with Font Awesome icon
-          $('#see-it-first').html(`
+    <!-- Start Footer -->
+    <footer class="container-fluid px-0 mt-5">
+        <div class="container mb-5">
             <div class="row">
-              <div class="col-12 sm-6">
-                <h3><i class="fas fa-bell"></i> SEE IT FIRST</h3>
-                <form style="display: flex;">
-                  <input maxlength="100" required type="email" placeholder="Enter your email address" name="email" class="email"/>
-                  <button type="button" class="btn btn-dark">JOIN</button>
-                </form>
-              </div>
+                <div class="col-lg-4 col-md-5 col-sm-12" id="see-it-first">
+                    <!-- Content will be dynamically added here -->
+                </div>
+                <div class="col-lg-5 col-md-4 col-sm-12">
+                    <div id="about-us">
+                        <!-- Content will be dynamically added here -->
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-3 col-sm-12">
+                    <div id="contact-us">
+                        <!-- Content will be dynamically added here -->
+                    </div>
+                </div>
             </div>
-          `);
+        </div>
+        <div class="bg-dark text-center p-3">
+            <small class="text-white" id="copyright-info">
+                <!-- Copyright information will be dynamically added here -->
+            </small>
+            <img src="{% static 'app/images/payment.png' %}" alt="Payment Methods" class="img-fluid" />
+        </div>
+    </footer>
+    <!-- End Footer -->
 
-          // Update 'About Us' section with Font Awesome icon
-          $('#about-us').html(`
-            <div class="col-12 sm-6" id="about_us">
-              <h3> About Us</h3>
-              <div class="d-flex gap-2">
-                <div><i class="fas fa-map-marker-alt"></i></div>
-                <h6>Address: ${data.office_address}, ${data.area},<br>${data.city}, ${data.state},<br>${data.pin_code}, ${data.country}</h6>
-              </div>
-            </div>
-          `);
+    <!-- Include jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-          // Update 'Contact Us' section with Font Awesome icon
-          $('#contact-us').html(`
-            <div class="col-12 sm-6">
-              <h3> Contact Us</h3>
-              <div class="d-flex gap-2">
-                <div><i class="fas fa-phone-alt"></i></div>
-                <h6>Phone No: ${data.office_number_1}</h6>
-              </div>
-            </div>
-          `);
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>
 
-          // Update copyright information
-          $('#copyright-info').html(`
-            Copyright &copy; ${new Date().getFullYear()} || Designed By CodeCraft ||
-          `);
-        },
-        error: function (error) {
-          console.log('Error fetching company data:', error);
-        }
-      });
+    <!-- jQuery UI -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
 
-      // Autocomplete search
-      let allProducts = {{ allProducts|safe }};
-      console.log(allProducts);
+    <!-- Owl Carousel -->
+    <script src="{% static 'app/js/owl.carousel.min.js' %}"></script>
 
-      $("#search").autocomplete({
-        source: function(request, response) {
-          var searchTerm = request.term.toLowerCase();
-          var matches = [];
-          $.each(allProducts, function(index, product) {
-            if (product.fields.title.toLowerCase().indexOf(searchTerm) !== -1) {
-              matches.push(product.fields.title);
-            }
-          });
-          response(matches);
-        },
-        minLength: 2, // Minimum characters before triggering autocomplete
-        select: function(event, ui) {
-          // Optionally handle selection of an item
-          console.log("Selected:", ui.item.value);
+    <!-- Custom Script -->
+    <script src="{% static 'app/js/base.js' %}"></script>
 
-          // Get the selected product object
-          var selectedProduct = allProducts.find(function(product) {
-            return product.fields.title === ui.item.value;
-          });
-
-          // Redirect to the product detail page
-          if (selectedProduct) {
-            var url = "{% url 'product-detail' 0 %}".replace('0', selectedProduct.pk);
-            window.location.href = url;
-          }
-        }
-      });
-    });
-  </script>
+    {% block script %}
+    <!-- Additional scripts can be added by other templates -->
+    {% endblock script %}
 </body>
 
 </html>

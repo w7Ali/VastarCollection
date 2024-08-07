@@ -318,3 +318,10 @@ def address_view(request):
         # 'active_address': active_address,
     }
     return render(request, 'app/address.html', context)
+
+def terms_conditions(request):
+    return render(request, 'app/conditions.html')
+
+def privacy(request):
+    return render(request, 'app/privacy.html')
+

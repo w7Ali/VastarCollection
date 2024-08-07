@@ -29,6 +29,8 @@ urlpatterns = [
     # path("mobile/", views.mobile, name="mobile"),
     # path("mobile/<slug:data>", views.mobile, name="mobiledata"),
     path("profile/", views.ProfileView.as_view(), name="profile"),
+    path("men_collection/", views.men_collection, name="men_collection"),
+    path("women_collection/", views.women_collection, name="women_collection"),
 ]
 
 auth_urls = [

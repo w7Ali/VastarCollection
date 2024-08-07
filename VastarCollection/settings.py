@@ -1,34 +1,25 @@
 import os
 from pathlib import Path
-
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()
+
+# Base directory of the project
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.getenv("SECRET_KEY")
-DEBUG = os.getenv("DEBUG")
+# Security settings
+SECRET_KEY = 'django-insecure-+nn6azn5#7-(tk#)lydhwb+a#m$!h))7ymk1n@8m#yjikdt0tb'
+DEBUG = os.getenv("DEBUG", "False") == "True"
 
-# ALLOWED_HOSTS = [os.getenv("ALLOWED_HOSTS")]
-ALLOWED_HOSTS= ['*']
-# CSRF_TRUSTED_ORIGINS = [os.getenv("CSRF_TRUSTED_ORIGINS")] 
-CSRF_TRUSTED_ORIGINS = ['https://2c7d-125-62-126-254.ngrok-free.app']
-
+# Allowed hosts and CSRF settings
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")
+CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",")
 
 # Application definition
-
 INSTALLED_APPS = [
     # "jet",
     "jazzmin",
-    # "unfold",  # before django.contrib.admin
-    # "unfold.contrib.filters",  # optional, if special filters are needed
-    # "unfold.contrib.forms",  # optional, if special form elements are needed
-    # "unfold.contrib.inlines",  # optional, if special inlines are needed
-    # "unfold.contrib.import_export",  # optional, if django-import-export package is used
-    # "unfold.contrib.guardian",  # optional, if django-guardian package is used
-    # "unfold.contrib.simple_history",  # optional, if django-simple-history package is used
-    # "django.contrib.admin",  # required
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -67,17 +58,21 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = os.getenv("WSGI_APPLICATION")
+WSGI_APPLICATION = os.getenv("WSGI_APPLICATION", "VastarCollection.wsgi.application")
 
-
+# Database configuration
 DATABASES = {
     "default": {
-        "ENGINE": os.getenv('DB_ENGINE'),
-        "NAME": BASE_DIR / "vscdb/db.sqlite3",
+        "ENGINE": os.getenv("DB_ENGINE", "django.db.backends.sqlite3"),
+        "NAME": os.getenv("DB_NAME", BASE_DIR / "vcdb/db.sqlite3"),
+        "USER": os.getenv("DB_USER", ""),
+        "PASSWORD": os.getenv("DB_PASSWORD", ""),
+        "HOST": os.getenv("DB_HOST", ""),
+        "PORT": os.getenv("DB_PORT", ""),
     }
 }
 
-
+# Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
@@ -93,18 +88,25 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
+# Localization
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
-DEFAULT_AUTO_FIELD = os.getenv("DEFAULT_AUTO_FIELD")
-
-STATIC_URL = "static/"
+# Static files (CSS, JavaScript, Images)
 STATIC_URL = "/static/"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
-LOGIN_REDIRECT_URL = os.getenv("LOGIN_REDIRECT_URL")
-EMAIL_BACKEND = os.getenv("EMAIL_BACKEND")
-SESSION_ENGINE = os.getenv("SESSION_ENGINE")
+
+# Default auto field
+DEFAULT_AUTO_FIELD = os.getenv("DEFAULT_AUTO_FIELD", "django.db.models.BigAutoField")
+
+# Login redirect URL
+LOGIN_REDIRECT_URL = os.getenv("LOGIN_REDIRECT_URL", "/profile/")
+
+# Email backend
+EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
+
+# Session engine
+SESSION_ENGINE = os.getenv("SESSION_ENGINE", "django.contrib.sessions.backends.db")

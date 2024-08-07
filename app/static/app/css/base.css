@@ -1,0 +1,63 @@
+/* Base styles specific to base.html */
+
+.search-form {
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.search-input {
+    width: 300px;
+    padding: 10px 30px 10px 10px;
+    background-color: #304d30;
+    border: none;
+    border-bottom: 2px solid white;
+    border-radius: 0;
+    outline: none;
+    color: white;
+}
+
+.search-input::placeholder {
+    color: white;
+}
+
+.search-icon {
+    position: absolute;
+    right: 10px;
+    color: white;
+    cursor: pointer;
+}
+
+.email {
+    width: 200px;
+    border: none;
+    border-bottom: 3px solid black;
+    border-radius: 0;
+    outline: none;
+}
+
+@media (max-width: 600px) {
+    #about_us {
+        margin-top: 15px;
+    }
+}
+
+/* CSS for suggestion container */
+#suggestions-container {
+    width: 200px;
+    padding: 10px;
+    background-color: #304d30;
+    border: none;
+    border-bottom: 2px solid white;
+    border-radius: 0;
+    outline: none;
+    color: white;
+    z-index: 1000; /* Ensure it's above other content */
+}
+
+/* CSS for suggestion items */
+.suggestion {
+    padding: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}

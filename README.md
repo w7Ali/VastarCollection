@@ -26,3 +26,5 @@ python manage.py runserver
 - - e.g git checkout Ticket_01_dev_w7Ali
 - Add README.md in your working branch with your name [Tikcet_01_w7Ali_README.md]
 - - Add the description and also mention then class diagram for the added the changes
+
+# Version 1 released

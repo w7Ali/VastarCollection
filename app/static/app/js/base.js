@@ -34,11 +34,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 $('#contact-us').html(`
                     <h3>Contact Us</h3>
-                    <div class="d-flex gap-2">
-                        <div><i class="fas fa-phone-alt"></i></div>
-                        <h6>Phone No: ${data.office_number_1}</h6>
+                    <div class="d-flex flex-column">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-phone-alt me-2"></i>
+                            <h6 class="mb-0">Phone No: ${data.office_number_1}</h6>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-envelope me-2"></i>
+                            <h6 class="mb-0">Email: ${data.subscription_email}</h6>
+                        </div>
                     </div>
                 `);
+                
 
                 $('#copyright-info').html(`
                     Copyright &copy; ${new Date().getFullYear()} || Designed By CodeCraft ||

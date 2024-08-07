@@ -7,7 +7,8 @@ __pycache__/
 *.pyc
 db.sqlite3
 /migrations/
-
+/vcdb/
+/vcdb/db.sqlite3
 # Ignore virtual environment
 .venv/
 venv/
@@ -48,3 +49,10 @@ Thumbs.db
 
 # Ignore dummy data
 app/dummy_data
+
+# Ignore static files
+static/
+staticfiles/
+
+# Ignore media files
+media/

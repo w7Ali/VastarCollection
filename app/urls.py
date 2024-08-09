@@ -51,6 +51,7 @@ auth_urls = [
         ),
         name="login",
     ),
+    path('accounts/logout/', views.user_logout, name='logout'),
     path(
         "passwordchange/",
         auth_views.PasswordChangeView.as_view(

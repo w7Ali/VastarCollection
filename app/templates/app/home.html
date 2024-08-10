@@ -121,40 +121,40 @@
     .product-card .btn-outline-secondary {
 
       color: #666;
-
+      
       border-color: #ccc;
-
+      
     }
- 
+    
     .product-card .btn-outline-secondary:hover {
-
+      
       background-color: #f8f9fa;
-
+      
       color: #333;
-
+      
       border-color: #ccc;
-
+      
     }
- 
+    
     .product-card .text-orange {
-
+      
       color: orange;
-
+      
     }
- 
+    
     .product-card .text-green {
-
+      
       color: green;
-
+      
     }
- 
+    
     .product-card .fw-bold {
 
       font-weight: bold;
-
+      
     }
-
-  </style>
+    
+    </style>
 
 {% endblock extra_css %}
  
@@ -281,8 +281,14 @@
       {% endif %}
     </ul>
   </nav>
-  
 
+  <script type="text/javascript">
+    window.allProducts = JSON.parse('{{ allProducts|escapejs }}');
+    console.log("allProducts in template:", window.allProducts);
+  </script>
+  <script src="{% static 'app/js/search_bar.js' %}"></script>
+
+ 
 </div>
 
 {% endblock main-content %}

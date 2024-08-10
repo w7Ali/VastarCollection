@@ -56,6 +56,26 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+    function displayProducts(matchData) {
+        const productContainer = document.getElementById('search');
+        productContainer.innerHTML = '';
+
+        matchData.forEach(ele => {
+          const productElement = document.createElement('div');
+          productElement.className = 'product';
+          productElement.innerHTML = `
+           <div class="card mt-5" style="width: 18rem;">
+           <img src="media/${ele.product_image}" class="card-img-top" alt=${ele.title},"img">
+           <div class="card-body">
+            <h4>${ele.title}</h4>
+            <p class="card-title">${ele.description}</p>
+            <h4 class="card-text">Price: ${ele.selling_price}</h4>
+            </div>
+           </div>  
+          `;
+          productContainer.appendChild(productElement);
+        });
+      }
 
     // Common function to initialize autocomplete search
     function initializeAutocompleteSearch() {
@@ -70,6 +90,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 });
                 response(matches);
+                displayProducts(matches);
+                
+                
+                
             },
             minLength: 2,
             select: function (event, ui) {
@@ -80,16 +104,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
 
                 if (selectedProduct) {
-                    var url = "{% url 'product-detail' 0 %}".replace('0', selectedProduct.pk);
+                    let id = selectedProduct.pk;
+                    var url = `/product-detail/${id}`;
                     window.location.href = url;
                 }
             }
         });
+
     }
 
     // Call common functions
     fetchCompanyData();
     initializeAutocompleteSearch();
+
 
     // Logout functionality
     document.getElementById('logout-link')?.addEventListener('click', function (event) {

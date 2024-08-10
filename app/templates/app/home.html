@@ -174,7 +174,7 @@
  
 {% block banner_slider %}
 
-{% include 'app/banner_slider.html' %}
+{% include 'app/components/banner_slider.html' %}
 
 {% endblock banner_slider %}
  
@@ -281,14 +281,6 @@
       {% endif %}
     </ul>
   </nav>
-
-  <script type="text/javascript">
-    window.allProducts = JSON.parse('{{ allProducts|escapejs }}');
-    console.log("allProducts in template:", window.allProducts);
-  </script>
-  <script src="{% static 'app/js/search_bar.js' %}"></script>
-
- 
 </div>
 
 {% endblock main-content %}

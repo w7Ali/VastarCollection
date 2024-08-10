@@ -20,6 +20,10 @@
       {{fm.label_tag}} {{fm}} <small class="text-danger">{{fm.errors|striptags}}</small>
       </div>
      {% endfor %}
+     <div>
+      By continuing, you agree to our
+      <a href="{% url 'terms-conditions' %}"> Conditions </a> and <a href="{% url 'privacy' %}">privacy</a>
+     </div>
      <input type="submit" value="Submit" class="btn btn-primary">
      <br>
      <div class="text-center text-primary fw-bold"><small>Existing User ? <a href="{% url 'login' %}" class="text-danger">Login Now</a> </small></div>

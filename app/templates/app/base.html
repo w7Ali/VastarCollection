@@ -24,7 +24,7 @@
 
 <body>
     {% block nav %}
-    {% include 'app/nav/nav.html' %}
+    {% include 'app/components/nav.html' %}
     {% endblock nav %}
 
     {% block livesale %} {% endblock livesale %}
@@ -37,33 +37,11 @@
     {% block payment-gateway %} {% endblock payment-gateway %}
     <hr>
 
-    <!-- Start Footer -->
-    <footer class="container-fluid px-0 mt-5">
-        <div class="container mb-5">
-            <div class="row">
-                <div class="col-lg-4 col-md-5 col-sm-12" id="see-it-first">
-                    <!-- Content will be dynamically added here -->
-                </div>
-                <div class="col-lg-5 col-md-4 col-sm-12">
-                    <div id="about-us">
-                        <!-- Content will be dynamically added here -->
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-3 col-sm-12">
-                    <div id="contact-us">
-                        <!-- Content will be dynamically added here -->
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="bg-dark text-center p-3">
-            <small class="text-white" id="copyright-info">
-                <!-- Copyright information will be dynamically added here -->
-            </small>
-            <img src="{% static 'app/images/payment.png' %}" alt="Payment Methods" class="img-fluid" />
-        </div>
-    </footer>
-    <!-- End Footer -->
+    {% block footer %}
+    {% include 'app/components/footer.html' %}
+    {% endblock footer %}
+
+
 
     <!-- Include jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -78,7 +56,10 @@
     <script src="{% static 'app/js/owl.carousel.min.js' %}"></script>
 
     <!-- Custom Script -->
-    <script src="{% static 'app/js/base.js' %}"></script>
+    <script src="{% static 'app/js/footer.js' %}"></script>
+    <script src="{% static 'app/js/autocomplete.js' %}"></script>
+    <script src="{% static 'app/js/login.js' %}"></script>
+
 
     {% block script %}
     <!-- Additional scripts can be added by other templates -->

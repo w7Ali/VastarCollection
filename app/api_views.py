@@ -1,3 +1,4 @@
+from rest_framework import generics
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -6,6 +7,9 @@ from django.db.models import ExpressionWrapper, F, FloatField
 from .models import CompanyDetail, Product, Address
 from .serializers import CompanyDetailSerializer, ProductSerializer, AddressSerializer
 
+class ProductListAPIView(generics.ListAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
 
 @api_view(["GET"])
 def company_detail_api(request):

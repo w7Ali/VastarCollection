@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login ,logout
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Q
@@ -8,42 +8,47 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.decorators import method_decorator
 from django.views import View
 import random
-
+from django.core.serializers import serialize
+from django.http import JsonResponse
+import random
 from .forms import CustomerProfileForm, CustomerRegistrationForm, AddressForm
 from .models import Cart, Customer, OrderPlaced, Product, ProductVariation, Address
 
 
 class ProductView(View):
-    """
-    View to list products with pagination and shuffling.
-    """
     def get(self, request):
         totalitem = 0
-
+ 
         mens_wear = list(Product.objects.filter(category="MW"))
         womens_wear = list(Product.objects.filter(category="WW"))
-
+ 
         # Combine and shuffle products
         combined_products = mens_wear + womens_wear
         random.shuffle(combined_products)
-
+ 
+        # Serialize product data to JSON
+        all_products_json = serialize('json', combined_products)
+ 
+        # Log the serialized data for debugging
+        print("Serialized products data:", all_products_json)
+ 
         # Paginate products
-        paginator = Paginator(combined_products, 12)  # 12 products per page
+        paginator = Paginator(combined_products, 12)
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
-
+ 
         if request.user.is_authenticated:
             totalitem = Cart.objects.filter(user=request.user).count()
-
+ 
         return render(
             request,
             "app/home.html",
             {
                 "page_obj": page_obj,
+                "allProducts": all_products_json,  # Pass serialized JSON data
                 "totalitem": totalitem,
             }
         )
-
 
 class ProductDetailView(View):
     """
@@ -338,3 +343,7 @@ def women_collection(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     return render(request, 'app/women_collection.html', {"page_obj": page_obj})
+
+def user_logout(request):
+    logout(request)
+    return redirect('login')

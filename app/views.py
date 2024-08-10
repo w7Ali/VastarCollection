@@ -1,3 +1,4 @@
+import random
 from django.contrib import messages
 from django.contrib.auth import authenticate, login ,logout
 from django.contrib.auth.decorators import login_required
@@ -7,10 +8,8 @@ from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.decorators import method_decorator
 from django.views import View
-import random
-from django.core.serializers import serialize
+from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
-import random
 from .forms import CustomerProfileForm, CustomerRegistrationForm, AddressForm
 from .models import Cart, Customer, OrderPlaced, Product, ProductVariation, Address
 
@@ -26,12 +25,6 @@ class ProductView(View):
         combined_products = mens_wear + womens_wear
         random.shuffle(combined_products)
  
-        # Serialize product data to JSON
-        all_products_json = serialize('json', combined_products)
- 
-        # Log the serialized data for debugging
-        print("Serialized products data:", all_products_json)
- 
         # Paginate products
         paginator = Paginator(combined_products, 12)
         page_number = request.GET.get('page')
@@ -45,7 +38,6 @@ class ProductView(View):
             "app/home.html",
             {
                 "page_obj": page_obj,
-                "allProducts": all_products_json,  # Pass serialized JSON data
                 "totalitem": totalitem,
             }
         )
@@ -67,7 +59,7 @@ class ProductDetailView(View):
 
         return render(
             request,
-            "app/productdetail.html",
+            "app/products/productdetail.html",
             {
                 "product": product,
                 "product_variation": product_variation,
@@ -108,7 +100,7 @@ def show_cart(request):
         if cart.exists():
             return render(
                 request,
-                "app/addtocart.html",
+                "app/cart/addtocart.html",
                 {
                     "carts": cart,
                     "amount": amount,
@@ -117,9 +109,9 @@ def show_cart(request):
                 }
             )
         else:
-            return render(request, "app/emptycart.html", {"totalitem": totalitem})
+            return render(request, "app/cart/emptycart.html", {"totalitem": totalitem})
 
-    return render(request, "app/emptycart.html", {"totalitem": totalitem})
+    return render(request, "app/cart/emptycart.html", {"totalitem": totalitem})
 
 
 @login_required
@@ -183,7 +175,7 @@ def checkout(request):
 
     return render(
         request,
-        "app/checkout.html",
+        "app/cart/checkout.html",
         {"addresses": addresses, "cart_items": cart_items, "totalamount": totalamount}
     )
 
@@ -216,7 +208,7 @@ def orders(request):
     View to display all orders placed by the user.
     """
     order_placed = OrderPlaced.objects.filter(user=request.user)
-    return render(request, "app/orders.html", {"order_placed": order_placed})
+    return render(request, "app/cart/orders.html", {"order_placed": order_placed})
 
 
 class CustomerRegistrationView(View):
@@ -225,7 +217,7 @@ class CustomerRegistrationView(View):
     """
     def get(self, request):
         form = CustomerRegistrationForm()
-        return render(request, "app/customerregistration.html", {"form": form})
+        return render(request, "app/authentication/customerregistration.html", {"form": form})
 
     def post(self, request):
         form = CustomerRegistrationForm(request.POST)
@@ -238,7 +230,7 @@ class CustomerRegistrationView(View):
                 login(request, user)
                 messages.success(request, "Congratulations! Registered Successfully.")
                 return redirect('home')
-        return render(request, "app/customerregistration.html", {"form": form})
+        return render(request, "app/authentication/customerregistration.html", {"form": form})
 
 
 @method_decorator(login_required, name="dispatch")
@@ -254,7 +246,7 @@ class ProfileView(View):
 
         return render(
             request,
-            "app/profile.html",
+            "app/profile/profile.html",
             {
                 "form": form,
                 "customer": customer,
@@ -278,7 +270,7 @@ class ProfileView(View):
 
         return render(
             request,
-            "app/profile.html",
+            "app/profile/profile.html",
             {
                 "form": form,
                 "customer": customer,
@@ -306,21 +298,21 @@ def address_view(request):
         form = AddressForm()
 
     addresses = Address.objects.filter(user=user)
-    return render(request, 'app/address.html', {'form': form, 'addresses': addresses})
+    return render(request, 'app/profile/address.html', {'form': form, 'addresses': addresses})
 
 
 def terms_conditions(request):
     """
     View to display terms and conditions.
     """
-    return render(request, 'app/conditions.html')
+    return render(request, 'app/policy/conditions.html')
 
 
 def privacy(request):
     """
     View to display privacy policy.
     """
-    return render(request, 'app/privacy.html')
+    return render(request, 'app/policy/privacy.html')
 
 
 def men_collection(request):
@@ -331,7 +323,7 @@ def men_collection(request):
     paginator = Paginator(mens_wear, 12)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    return render(request, 'app/men_collection.html', {"page_obj": page_obj})
+    return render(request, 'app/products/men_collection.html', {"page_obj": page_obj})
 
 
 def women_collection(request):
@@ -342,8 +334,32 @@ def women_collection(request):
     paginator = Paginator(womens_wear, 12)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    return render(request, 'app/women_collection.html', {"page_obj": page_obj})
+    return render(request, 'app/products/women_collection.html', {"page_obj": page_obj})
 
 def user_logout(request):
     logout(request)
     return redirect('login')
+
+
+
+@csrf_exempt
+def search_products(request):
+    if request.method == 'GET':
+        search_term = request.GET.get('name', '')
+        min_price = request.GET.get('min_price', '')
+        max_price = request.GET.get('max_price', '')
+
+        products = Product.objects.all()
+
+        if search_term:
+            products = products.filter(title__icontains=search_term)
+        
+        if min_price:
+            products = products.filter(selling_price__gte=min_price)
+        
+        if max_price:
+            products = products.filter(selling_price__lte=max_price)
+        
+        product_list = list(products.values('id', 'title', 'selling_price', 'discounted_price', 'description', 'brand', 'category', 'product_image'))
+
+        return JsonResponse(product_list, safe=False)

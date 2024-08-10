@@ -16,10 +16,15 @@
         </div>
       </div>
     {% endfor %}
-    <p class="fw-bold">Total Cost + Rs. 70  = {{totalcost}}</p>
+    <p class="fw-bold">Total Cost + Rs. 70  = {{totalamount}}</p>
     <small>(Rs. 70 Delivery Charge)</small> <hr>
-    <small>Term and Condition: Lorem ipsum dolor sit amet consectetur adipisicing elit. Mollitia, ullam saepe! Iure optio repellat dolor velit, minus rem. Facilis cumque neque numquam laboriosam, accusantium adipisci nisi nihil in et quis?</small>
+    <small>Term and Condition: </small>
+    <small>
+      By continuing, you agree to our
+      <a href="{% url 'terms-conditions' %}"> Conditions </a> and <a href="{% url 'privacy' %}">privacy</a>
+    </small>
   </div>
+</small>
   <div class="col-sm-4 offset-sm-1">
     <h4>Select Shipping Address</h4>
     <hr>

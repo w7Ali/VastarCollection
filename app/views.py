@@ -35,7 +35,7 @@ class ProductView(View):
  
         return render(
             request,
-            "app/home.html",
+            "app/index.html",
             {
                 "page_obj": page_obj,
                 "totalitem": totalitem,

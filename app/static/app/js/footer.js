@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function () {
                       </div>
                           <small>
                             Term and Conditions
-                            <a href="{% url 'terms-conditions' %}"> Conditions </a> and <a href="{% url 'privacy' %}">privacy</a>
+                            <a href="/privacy"> Conditions </a> and <a href="/terms-conditions">privacy</a>
                           </small>
                   </div>
               `);

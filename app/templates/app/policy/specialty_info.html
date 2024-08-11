@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responsive Features Section</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .feature-section {
+            background-color: #304d30;
+            color: whitesmoke;
+            padding: 3rem 1rem;
+        }
+        .feature-section .row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+        }
+        .feature-section .col-md-3 {
+            flex: 1;
+            max-width: 24%;
+            padding: 1rem;
+            text-align: center;
+        }
+        .feature-section .col-md-3 i {
+            color: #a0d6a6;
+            margin-bottom: 1rem;
+            font-size: 3rem;
+        }
+        .feature-section h2 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+        .feature-section p {
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+        
+        /* Responsive Styles */
+        @media (max-width: 992px) {
+            .feature-section .col-md-3 {
+                max-width: 48%;
+            }
+        }
+        @media (max-width: 768px) {
+            .feature-section .col-md-3 {
+                max-width: 100%;
+                padding: 1rem 0;
+            }
+            .feature-section i {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="feature-section">
+    <div class="row">
+        <div class="col-md-3">
+            <span><i class="fas fa-shipping-fast"></i></span>
+            <h2>Worldwide Shipping</h2>
+            <p>Efficient and reliable delivery to every corner of the world, ensuring your products reach you on time.</p>
+        </div>
+        <div class="col-md-3">
+            <span><i class="fas fa-certificate"></i></span>
+            <h2>Top Quality</h2>
+            <p>Exceptional standards in every product we offer, guaranteeing durability and satisfaction.</p>
+        </div>
+        <div class="col-md-3">
+            <span><i class="fas fa-gift"></i></span>
+            <h2>Exclusive Offers</h2>
+            <p>Discover special deals and promotions, designed to provide the best value for your money.</p>
+        </div>
+        <div class="col-md-3">
+            <span><i class="fas fa-shield-alt"></i></span>
+            <h2>Secure Payments</h2>
+            <p>Safe and encrypted transactions for peace of mind with every purchase.</p>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

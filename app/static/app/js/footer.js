@@ -16,12 +16,28 @@ document.addEventListener('DOMContentLoaded', function () {
                               <button type="button" class="btn btn-dark">JOIN</button>
                           </form>
                       </div>
-                          <small>
-                            Term and Conditions
-                            <a href="/privacy"> Conditions </a> and <a href="/terms-conditions">privacy</a>
-                          </small>
                   </div>
               `);
+
+              $('#policy').html(`
+                <h3>Policy</h3>
+                <div class="d-flex flex-column">
+                      <div class="d-flex align-items-center mb-2">
+                       <i class="fas fa-user-shield"></i>
+                        <h6>
+                         <a href="/privacy" style="text-decoration:none;color:black;">Conditions</a><br>
+                        </h6>
+                        </div>
+                    <div class="d-flex align-items-center">
+                      <i class="fas fa-file-contract"></i>
+                    <h6>
+                        <a href="/terms-conditions" style="text-decoration:none;color:black;">Privacy</a>
+                    </h6>
+                    </div>
+                    </div>
+                </div>
+            `);
+            
 
               $('#about-us').html(`
                   <h3>About Us</h3>
@@ -51,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function () {
               
 
               $('#copyright-info').html(`
-                  Copyright &copy; ${new Date().getFullYear()} || Designed By CodeCraft ||
+                  Copyright &copy; ${new Date().getFullYear()} || Designed and Developed By CodeCraft 
               `);
           },
           error: function (error) {

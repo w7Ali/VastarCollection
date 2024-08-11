@@ -51,7 +51,6 @@ Thumbs.db
 app/dummy_data
 
 # Ignore static files
-static/
 staticfiles/
 
 # Ignore media files

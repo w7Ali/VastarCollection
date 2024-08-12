@@ -110,7 +110,7 @@ auth_urls = [
 # Define URL patterns for API views
 api_urls = [
     path("api/company/", api_views.company_detail_api, name="company-detail-api"),
-    path("api/products/", api_views.latest_and_discount_product, name="product"),
+    path("api/carousel/", api_views.latest_and_discount_product, name="carousel"),
     path('api/address/<int:id>/update/', api_views.update_address, name='api-update-address'),
     path('api/address/<int:id>/delete/', api_views.delete_address, name='api-delete-address'),
     path('api/address/set-active/', api_views.set_active_address, name='set-active-address'),

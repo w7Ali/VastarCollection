@@ -1,0 +1,158 @@
+.product-card img {
+  width: 100%;
+  height: 350px;
+  object-fit: cover;
+}
+.product-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.product-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+#price {
+  color: black;
+  font-weight: bold;
+}
+#percentage {
+  background-color: #343f34;
+}
+
+
+
+/* index.html old css */
+
+
+/* Custom CSS for product cards */
+
+.product-card {
+
+    border: 1px solid #ddd;
+
+    transition: box-shadow 0.3s ease-in-out;
+
+  }
+
+  .product-card:hover {
+
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+  }
+
+  .product-card .card-body {
+
+    padding: 1.25rem;
+
+  }
+
+  .product-card .card-title {
+
+    font-size: 1.5rem;
+
+    font-weight: bold;
+
+    color: #333;
+
+    margin-bottom: 0.75rem;
+
+  }
+
+  .product-card .card-text {
+
+    color: #666;
+
+    font-size: 0.875rem;
+
+    margin-bottom: 1rem;
+
+  }
+
+  .product-card .list-group-item {
+
+    border: none;
+
+    padding: 0.5rem 1.25rem;
+
+    font-size: 0.875rem;
+
+    color: #666;
+
+  }
+
+  .product-card .list-group-item:first-child {
+
+    border-top: 1px solid #ddd;
+
+  }
+
+  .product-card .list-group-item:last-child {
+
+    border-bottom: 1px solid #ddd;
+
+  }
+
+  .product-card .btn {
+
+    font-size: 0.875rem;
+
+    padding: 0.5rem 1.25rem;
+
+    border-radius: 20px;
+
+    transition: background-color 0.3s ease-in-out;
+
+  }
+
+  .product-card .btn-primary {
+
+    background-color: #007bff;
+
+    border-color: #007bff;
+
+    color: #fff;
+
+  }
+
+  .product-card .btn-primary:hover {
+
+    background-color: #0056b3;
+
+    border-color: #0056b3;
+
+  }
+
+  .product-card .btn-outline-secondary {
+
+    color: #666;
+    
+    border-color: #ccc;
+    
+  }
+  
+  .product-card .btn-outline-secondary:hover {
+    
+    background-color: #f8f9fa;
+    
+    color: #333;
+    
+    border-color: #ccc;
+    
+  }
+  
+  .product-card .text-orange {
+    
+    color: orange;
+    
+  }
+  
+  .product-card .text-green {
+    
+    color: green;
+    
+  }
+  
+  .product-card .fw-bold {
+
+    font-weight: bold;
+    
+  }

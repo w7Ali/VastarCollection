@@ -10,158 +10,13 @@
  
 {% block extra_css %}
 
-  <style>
-
-    /* Custom CSS for product cards */
-
-    .product-card {
-
-      border: 1px solid #ddd;
-
-      transition: box-shadow 0.3s ease-in-out;
-
-    }
- 
-    .product-card:hover {
-
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-
-    }
- 
-    .product-card img {
-
-      max-height: 250px;
-
-      object-fit: cover;
-
-    }
- 
-    .product-card .card-body {
-
-      padding: 1.25rem;
-
-    }
- 
-    .product-card .card-title {
-
-      font-size: 1.5rem;
-
-      font-weight: bold;
-
-      color: #333;
-
-      margin-bottom: 0.75rem;
-
-    }
- 
-    .product-card .card-text {
-
-      color: #666;
-
-      font-size: 0.875rem;
-
-      margin-bottom: 1rem;
-
-    }
- 
-    .product-card .list-group-item {
-
-      border: none;
-
-      padding: 0.5rem 1.25rem;
-
-      font-size: 0.875rem;
-
-      color: #666;
-
-    }
- 
-    .product-card .list-group-item:first-child {
-
-      border-top: 1px solid #ddd;
-
-    }
- 
-    .product-card .list-group-item:last-child {
-
-      border-bottom: 1px solid #ddd;
-
-    }
- 
-    .product-card .btn {
-
-      font-size: 0.875rem;
-
-      padding: 0.5rem 1.25rem;
-
-      border-radius: 20px;
-
-      transition: background-color 0.3s ease-in-out;
-
-    }
- 
-    .product-card .btn-primary {
-
-      background-color: #007bff;
-
-      border-color: #007bff;
-
-      color: #fff;
-
-    }
- 
-    .product-card .btn-primary:hover {
-
-      background-color: #0056b3;
-
-      border-color: #0056b3;
-
-    }
- 
-    .product-card .btn-outline-secondary {
-
-      color: #666;
-      
-      border-color: #ccc;
-      
-    }
-    
-    .product-card .btn-outline-secondary:hover {
-      
-      background-color: #f8f9fa;
-      
-      color: #333;
-      
-      border-color: #ccc;
-      
-    }
-    
-    .product-card .text-orange {
-      
-      color: orange;
-      
-    }
-    
-    .product-card .text-green {
-      
-      color: green;
-      
-    }
-    
-    .product-card .fw-bold {
-
-      font-weight: bold;
-      
-    }
-    
-    </style>
-
 {% endblock extra_css %}
- 
+
 {% block livesale %}
+<link rel="stylesheet" href="{% static 'app/css/product.css' %}" />
 
 <div style="width: 100%; overflow-x: hidden;">
-
+  
   <div class="container-fluid row text-center p-2 text-white border-bottom shadow" style="background-color: #163020; margin: 0; padding: 0;">
 
     <h6 class="col-12">SALE | 5% Instant Discount on Axis Bank Credit and Debit Card</h6>
@@ -187,100 +42,102 @@
     {% for product in page_obj %}
 
       <div class="col-6 col-md-3 mb-5 ">
-
-        <div class="card product-card h-100 border-0 shadow-sm">
-
+        <div class="card product-card h-100 border-0 shadow-sm w">
           <img src="{{ product.product_image.url }}" class="card-img-top" alt="Product Image">
-
-          <div class="card-body">
-
-            <h5 class="card-title">{{ product.title }}</h5>
-
-            <p class="card-text">{{ product.description }}</p>
-
-          </div>
-
+        
           <ul class="list-group list-group-flush">
-
-            <li class="list-group-item border-0"><i class="fas fa-tag"></i> Brand: <span class="fw-bold">{{ product.brand }}</span></li>
-
-            <li class="list-group-item border-0 text-muted"><del>Selling Price: ₹ {{ product.selling_price }}</del></li>
-
+            <h6 class="card-title p-2"> &nbsp; {{ product.title|slice:":19" }}{% if product.title|length > 19 %}...{% endif %}</h6>
             <li class="list-group-item border-0">
-
-              <span class="badge bg-primary fs-7 py-2"><i class="fas fa-percentage"></i> {{ product.discount_percent }} % Off</span>
-
+              <span class="badge fs-7 py-2" id="percentage"><i class="fas fa-percentage"></i> {{ product.discount_percent }} % Off</span>
             </li>
-
-            <li class="list-group-item border-0 text-orange fw-bold"><i class="fas fa-tag"></i> Discounted Price: <span class="text-success">₹ {{ product.discounted_price }}</span></li>
-
+            <!-- <li class="list-group-item border-0"><i class="fas fa-tag"></i> Brand: <span class="fw-bold">{{ product.brand }}</span></li> -->
+            <li class="list-group-item border-0 text-muted"><del> ₹ {{ product.selling_price }}</del> <span id="price"> ₹ {{ product.discounted_price }} </span> </li>
+            <!-- <li class="list-group-item border-0 text-orange fw-bold"><i class="fas fa-tag"></i> Discounted Price: <span class="text-success">₹ {{ product.discounted_price }}</span></li> -->
           </ul>
 
-          <div class="card-footer bg-transparent border-0 text-center">
-
+          <div class="card-footer bg-transparent border-0 text-center mb-3">
             <a href="{% url 'product-detail' product.id %}" class="btn" style="background-color: #395839; color: #fff;">View Details</a>
-
             <a href="#" class="btn btn-outline-secondary">Add to Cart</a>
-
           </div>
-
         </div>
-
       </div>
-
     {% endfor %}
-
   </div>
- 
-  <nav aria-label="Page navigation example">
+  <nav aria-label="Page navigation">
     <ul class="pagination justify-content-center">
+      <!-- First Page -->
       {% if page_obj.has_previous %}
         <li class="page-item">
           <a class="page-link" href="?page=1" aria-label="First">
-            <span aria-hidden="true">&laquo; first</span>
-          </a>
-        </li>
-        <li class="page-item">
-          <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
-            <span aria-hidden="true">previous</span>
+            <span aria-hidden="true">&laquo;&laquo;</span>
+            <span class="visually-hidden">First</span>
           </a>
         </li>
       {% else %}
         <li class="page-item disabled">
-          <span class="page-link">&laquo; first</span>
-        </li>
-        <li class="page-item disabled">
-          <span class="page-link">previous</span>
+          <span class="page-link" aria-label="First">
+            <span aria-hidden="true">&laquo;&laquo;</span>
+          </span>
         </li>
       {% endif %}
   
-      <li class="page-item disabled">
-        <span class="page-link">
-          Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
-        </span>
-      </li>
-  
-      {% if page_obj.has_next %}
+      <!-- Previous Page -->
+      {% if page_obj.has_previous %}
         <li class="page-item">
-          <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
-            <span aria-hidden="true">next</span>
-          </a>
-        </li>
-        <li class="page-item">
-          <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Last">
-            <span aria-hidden="true">last &raquo;</span>
+          <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+            <span aria-hidden="true">&laquo;</span>
+            <span class="visually-hidden">Previous</span>
           </a>
         </li>
       {% else %}
         <li class="page-item disabled">
-          <span class="page-link">next</span>
+          <span class="page-link" aria-label="Previous">
+            <span aria-hidden="true">&laquo;</span>
+          </span>
         </li>
+      {% endif %}
+  
+      <!-- Current Page -->
+      <li class="page-item disabled">
+        <span class="page-link">
+          Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+      </li>
+  
+      <!-- Next Page -->
+      {% if page_obj.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+            <span aria-hidden="true">&raquo;</span>
+            <span class="visually-hidden">Next</span>
+          </a>
+        </li>
+      {% else %}
         <li class="page-item disabled">
-          <span class="page-link">last &raquo;</span>
+          <span class="page-link" aria-label="Next">
+            <span aria-hidden="true">&raquo;</span>
+          </span>
+        </li>
+      {% endif %}
+  
+      <!-- Last Page -->
+      {% if page_obj.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Last">
+            <span aria-hidden="true">&raquo;&raquo;</span>
+            <span class="visually-hidden">Last</span>
+          </a>
+        </li>
+      {% else %}
+        <li class="page-item disabled">
+          <span class="page-link" aria-label="Last">
+            <span aria-hidden="true">&raquo;&raquo;</span>
+          </span>
         </li>
       {% endif %}
     </ul>
   </nav>
+  
 </div>
 {% include "app/policy/specialty_info.html" %}
 {% endblock main-content %}

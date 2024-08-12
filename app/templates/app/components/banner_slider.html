@@ -22,7 +22,7 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    fetch("/api/products")
+    fetch("api/carousel/")
       .then((response) => response.json())
       .then((data) => {
         const carouselInner = document.getElementById("carouselInner");

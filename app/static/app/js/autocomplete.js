@@ -1,74 +1,70 @@
-document.addEventListener('DOMContentLoaded', function () {
 
-    // Function to display products in the container
-    function displayProducts(products) {
-        const productContainer = document.getElementById('search');
-        productContainer.innerHTML = '';
+$(document).ready(function () {
 
-        products.forEach(product => {
-            const productElement = document.createElement('div');
-            productElement.className = 'product';
-            productElement.innerHTML = `
-                <div class="card mt-5" style="width: 18rem;">
-                    <img src="media/${product.product_image}" class="card-img-top" alt="${product.title}" />
-                    <div class="card-body">
-                        <h4>${product.title}</h4>
-                        <p class="card-title">${product.description}</p>
-                        <h4 class="card-text">Price: ${product.selling_price}</h4>
-                    </div>
-                </div>
-            `;
-            productContainer.appendChild(productElement);
+    // Function to display suggestions
+    function displaySuggestions(suggestions) {
+        const suggestionsBox = $('#suggestions');
+        suggestionsBox.empty(); // Clear existing suggestions
+
+        if (suggestions.length === 0) {
+            suggestionsBox.hide();
+            return;
+        }
+
+        suggestions.forEach(suggestion => {
+            const item = $('<div class="suggestion-item"></div>');
+            item.text(suggestion.label);
+            item.on('click', function () {
+                $('#search').val(suggestion.label);
+                window.location.href = `/product-detail/${suggestion.id}`;
+                suggestionsBox.hide();
+            });
+            suggestionsBox.append(item);
         });
-    }
 
-    // Function to initialize autocomplete search
-    function initializeAutocompleteSearch() {
-        console.log("Initializing autocomplete search...");
-
-        $("#search").autocomplete({
-            source: function (request, response) {
-                const searchTerm = request.term.toLowerCase();
-                const minPrice = $('#min_price').val(); // Assuming you have a field for minimum price
-                const maxPrice = $('#max_price').val(); // Assuming you have a field for maximum price
-
-                $.ajax({
-                    url: '/api/search/',
-                    type: 'GET',
-                    data: {
-                        name: searchTerm,
-                        min_price: minPrice,
-                        max_price: maxPrice
-                    },
-                    success: function (data) {
-                        console.log("Data from /api/search:", data);
-
-                        const matches = data.map(product => ({
-                            label: product.title,
-                            value: product.title,
-                            id: product.id // Pass the product id
-                        }));
-
-                        response(matches);
-                    },
-                    error: function (error) {
-                        console.log('Error fetching products:', error);
-                    }
-                });
-            },
-            minLength: 2,
-            select: function (event, ui) {
-                console.log("Selected:", ui.item.value);
-
-                const selectedProductId = ui.item.id;
-                if (selectedProductId) {
-                    const url = `/product-detail/${selectedProductId}`;
-                    window.location.href = url;
-                }
-            }
-        });
+        suggestionsBox.show();
     }
 
     // Initialize autocomplete search
-    initializeAutocompleteSearch();
+    $('#search').on('input', function () {
+        const searchTerm = $(this).val().toLowerCase();
+
+        if (searchTerm.length < 2) {
+            $('#suggestions').hide();
+            return;
+        }
+
+        $.ajax({
+            url: '/api/search/',
+            type: 'GET',
+            data: {
+                name: searchTerm
+            },
+            success: function (data) {
+                const matches = data.map(product => ({
+                    label: product.title,
+                    value: product.title,
+                    id: product.id
+                }));
+                displaySuggestions(matches);
+            },
+            error: function (error) {
+                console.log('Error fetching products:', error);
+            }
+        });
+    });
+
+    // Hide suggestions box when clicking outside
+    $(document).on('click', function (e) {
+        if (!$(e.target).closest('#search').length) {
+            $('#suggestions').hide();
+        }
+    });
+
+    // Adjust the position of the suggestions box
+    $('#search').on('focus', function () {
+        $('#suggestions').show();
+    });
+
 });
+

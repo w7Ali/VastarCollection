@@ -26,6 +26,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django_extensions",
+    "sslserver",
     "rest_framework",
     "app",
 ]
@@ -111,3 +113,8 @@ EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.Em
 
 # Session engine
 SESSION_ENGINE = os.getenv("SESSION_ENGINE", "django.contrib.sessions.backends.db")
+
+HDFC_API_KEY = '036D41F236C4106987121D03E4E892'
+HDFC_MERCHANT_ID = 'SG988'
+# HDFC_MERCHANT_ID = 'your_merchant_id'
+HDFC_CLIENT_ID = 'hdfcmaster'

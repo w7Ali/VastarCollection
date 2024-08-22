@@ -105,6 +105,7 @@ auth_urls = [
         name="customerregistration",
     ),
     path("logout/", auth_views.LogoutView.as_view(next_page="login"), name="logout"),
+    path('initiate-payment/', views.initiate_payment, name='initiate-payment'),
 ]
 
 # Define URL patterns for API views

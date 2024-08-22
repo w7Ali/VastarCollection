@@ -77,10 +77,17 @@ def add_to_cart(request):
     """
     user = request.user
     product_id = request.GET.get("prod_id")
-    if not Cart.objects.filter(Q(product=product_id) & Q(user=user)).exists():
+
+    if not product_id:
+        return HttpResponse("No product ID provided", status=400)
+
+    if not Cart.objects.filter(Q(product_id=product_id) & Q(user=user)).exists():
         product = get_object_or_404(Product, id=product_id)
         Cart(user=user, product=product).save()
         messages.success(request, "Product Added to Cart Successfully!")
+    else:
+        messages.info(request, "Product already in cart.")
+    
     return redirect("/cart")
 
 
@@ -121,11 +128,17 @@ def update_cart(request, action):
     """
     if request.method == "GET":
         prod_id = request.GET.get("prod_id")
-        cart_item = get_object_or_404(Cart, Q(product=prod_id) & Q(user=request.user))
+
+        if not prod_id:
+            return HttpResponse("No product ID provided", status=400)
+
+        cart_item = get_object_or_404(Cart, Q(product_id=prod_id) & Q(user=request.user))
+        
         if action == "plus":
             cart_item.quantity += 1
         elif action == "minus" and cart_item.quantity > 1:
             cart_item.quantity -= 1
+        
         cart_item.save()
 
         amount = sum(p.quantity * p.product.discounted_price for p in Cart.objects.filter(user=request.user))
@@ -137,7 +150,7 @@ def update_cart(request, action):
         }
         return JsonResponse(data)
 
-    return HttpResponse("")
+    return HttpResponse("Invalid request method", status=405)
 
 
 @login_required
@@ -166,6 +179,9 @@ def checkout(request):
     """
     Checkout view to display addresses and cart items.
     """
+    if request.method == "POST":
+        return redirect('initiate-payment')
+
     user = request.user
     addresses = Address.objects.filter(user=user)
     cart_items = Cart.objects.filter(user=user)
@@ -180,26 +196,29 @@ def checkout(request):
     )
 
 
+
 @login_required
 def payment_done(request):
     """
     Handle the payment completion and create orders.
     """
-    custid = request.GET.get("custid")
     user = request.user
-    cart_items = Cart.objects.filter(user=user)
-    customer = get_object_or_404(Customer, id=custid)
+    order_id = request.GET.get("order_id")
+    if not order_id:
+        return HttpResponse("Invalid order ID", status=400)
 
+    cart_items = Cart.objects.filter(user=user)
     for cart_item in cart_items:
         OrderPlaced.objects.create(
             user=user,
-            customer=customer,
             product=cart_item.product,
-            quantity=cart_item.quantity
+            quantity=cart_item.quantity,
+            order_id=order_id
         )
         cart_item.delete()
 
     return redirect("orders")
+
 
 
 @login_required
@@ -363,3 +382,107 @@ def search_products(request):
         product_list = list(products.values('id', 'title', 'selling_price', 'discounted_price', 'description', 'brand', 'category', 'product_image'))
 
         return JsonResponse(product_list, safe=False)
+
+
+#-------------------------------------------------HDFC Payment GateWay----------
+# views.py
+
+# views.py
+
+import base64
+import requests
+from django.conf import settings
+from django.shortcuts import redirect, get_object_or_404
+from django.http import JsonResponse
+import json
+@login_required
+def initiate_payment(request):
+    """
+    Initiate payment with HDFC.
+    """
+    user = request.user
+    email = request.user.email
+    print("\n\n\t----request data ", user,email)
+    cart_items = Cart.objects.filter(user=user)
+    Customer_detail = Customer.objects.filter(user=user)
+
+    amount = sum(p.quantity * p.product.discounted_price for p in cart_items)
+    shipping_amount = 70.0
+    totalamount = amount + shipping_amount
+
+    # Prepare data for HDFC API
+    order_id = f"order-{random.randint(1000, 9999)}"  # Generate a unique order ID
+    customer = Customer.objects.filter(user=user).first()
+    
+    payload = {
+        "order_id": order_id,
+        "amount": str(totalamount),
+        # "customer_id": user.id,
+        "customer_id":  str(user.id),
+        "customer_email": str(user.email),
+        "customer_phone": str(customer.mobile_number),  # Ensure phone number is in user profile
+        "payment_page_client_id": settings.HDFC_CLIENT_ID,
+        "action": "paymentPage",
+        "currency": "INR",
+        # "return_url": request.build_absolute_uri('/paymentdone'),
+        "return_url": 'https://shivayinternational.co',
+        "description": "Complete your payment",
+        "first_name": customer.first_name,
+        "last_name": customer.last_name,
+        "metadata.JUSPAY:gateway_reference_id": "payu_test",
+    }
+    """
+    curl --location 'https://smartgatewayuat.hdfcbank.com/session' \
+    --header 'Authorization: Basic base_64_encoded_api_key==' \
+    --header 'Content-Type: application/json' \
+    --header 'x-merchantid: merchant_id' \
+    --header 'x-customerid: customer_id' \
+    --header 'Authorization: Basic MjMzQTJBRjQ2REI0NTNCOTQ0Q0JBMUFCNDlGOTIyOg==' \
+    --data-raw '{
+        "order_id": " testing-order-one",
+        "amount": "10.0",
+        "customer_id": "testing-customer-one",
+        "customer_email": "test@mail.com",
+        "customer_phone": "8604613494",
+        "payment_page_client_id": "your_client_id",
+        "action": "paymentPage",
+        "currency": "INR",
+        "return_url": "https://shop.merchant.com",
+        "description": "Complete your payment",
+        "first_name": "John",
+        "last_name": "wick"
+        "metadata.JUSPAY:gateway_reference_id": "payu_test",
+    }
+    '
+    """
+
+    # Prepare headers
+    api_key = settings.HDFC_API_KEY
+    merchant_id = settings.HDFC_MERCHANT_ID
+    encoded_credentials = base64.b64encode(f"{api_key}:".encode()).decode()
+    print("\n\n\t--encode",encoded_credentials)
+
+    headers = {
+        'Authorization': f'Basic {encoded_credentials}',
+        'Content-Type': 'application/json',
+        'x-merchantid': merchant_id,
+        # 'x-customerid': user.username
+        'x-customerid': str(user.id)
+    }
+    print("\n\n\t---Payload", payload)
+    print("\n\n\t---headers", headers)
+    # Send request to HDFC
+    response = requests.post('https://smartgatewayuat.hdfcbank.com/session', json=payload, headers=headers)
+
+    # Handle response
+    if response.status_code == 200:
+        response_data = response.json()
+        print("\n\n\t---Response Data", response_data)
+        payment_url = response_data['payment_links']['web']
+        print("\n\n\t--Payment url", payment_url)
+        return redirect(payment_url)
+    else:
+        # return response#.status_code
+        return JsonResponse({'error': 'Payment initiation failed', 'status':response.status_code, 'response':response.json()}, status=response.status_code)
+
+        # return JsonResponse({'error': 'Payment initiation failed'}, status=400)

@@ -1,0 +1,13 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /paymentdone/
+Disallow: /accounts/logout/
+Disallow: /passwordchange/
+Disallow: /password-reset/
+Disallow: /password-reset/done/
+Disallow: /password-reset-confirm/
+Disallow: /password-reset-complete/
+Disallow: /registration/
+Disallow: /initiate-payment/
+
+Allow: /

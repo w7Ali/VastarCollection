@@ -1,4 +1,10 @@
 import random
+import base64
+import requests
+import hashlib
+import hmac
+import urllib.parse
+import json
 from django.contrib import messages
 from django.contrib.auth import authenticate, login ,logout
 from django.contrib.auth.decorators import login_required
@@ -12,8 +18,11 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from .forms import CustomerProfileForm, CustomerRegistrationForm, AddressForm
 from .models import Cart, Customer, OrderPlaced, Product, ProductVariation, Address
+from django.conf import settings
 
 
+
+@method_decorator(csrf_exempt, name='dispatch')
 class ProductView(View):
     def get(self, request):
         totalitem = 0
@@ -68,7 +77,6 @@ class ProductDetailView(View):
                 "totalitem": totalitem,
             }
         )
-
 
 @login_required
 def add_to_cart(request):
@@ -196,29 +204,82 @@ def checkout(request):
     )
 
 
-
-@login_required
+@csrf_exempt
 def payment_done(request):
     """
-    Handle the payment completion and create orders.
+    Handle the payment completion and create orders as an API endpoint.
     """
-    user = request.user
-    order_id = request.GET.get("order_id")
-    if not order_id:
-        return HttpResponse("Invalid order ID", status=400)
+    try:
+        response_data = request.POST.dict()
 
+        order_id = response_data.get("order_id")
+        status = response_data.get("status")
+        signature = response_data.get("signature")
+        signature_algorithm = response_data.get("signature_algorithm")
+        status_id = response_data.get("status_id")
+
+        if not all([order_id, status, signature]):
+            return JsonResponse({"error": "Missing required fields"}, status=400)
+
+        params = {
+            "order_id": order_id,
+            "status": status,
+            "status_id": status_id
+        }
+
+        encoded_sorted = []
+        for key in sorted(params.keys()):
+            encoded_sorted.append(
+                urllib.parse.quote_plus(key) + '=' + urllib.parse.quote_plus(params[key])
+            )
+
+        signature_string = '&'.join(encoded_sorted)
+        encoded_string = urllib.parse.quote_plus(signature_string)
+        # Verify the HMAC signature
+
+        api_secret = settings.API_SECRET
+        if not api_secret:
+            return JsonResponse({"error": "Internal server error"}, status=500)
+
+        dig = hmac.new(api_secret.encode(), msg=encoded_string.encode(), digestmod=hashlib.sha256).digest()
+        expected_signature = urllib.parse.quote_plus(base64.b64encode(dig).decode())
+
+        if signature != signature:
+            return JsonResponse({"error": "Invalid signature"}, status=400)
+
+        if status_id == "21":
+            # Update the order status to "Accepted" if status_id is "21"
+            try:
+                orders = OrderPlaced.objects.filter(order_id=order_id)
+                if orders.exists():
+                    for order in orders:
+                        order.status = "Accepted"
+                        order.save()
+
+            except OrderPlaced.DoesNotExist:
+                return JsonResponse({"error": "Order not found"}, status=404)
+        else:
+            return JsonResponse({"error": "Invalid status_id"}, status=400)
+
+        # Process cart items and create orders
+        return process_cart_items(order.user, order_id)
+
+    except Exception as e:
+        return JsonResponse({"error": f"An error occurred: {str(e)}"}, status=500)
+
+
+def process_cart_items(user, order_id):
+    """
+    Fetch cart items for the user, create orders, and delete cart items.
+    """
     cart_items = Cart.objects.filter(user=user)
+    if not cart_items.exists():
+        return JsonResponse({"message": "No cart items found"}, status=404)
+
     for cart_item in cart_items:
-        OrderPlaced.objects.create(
-            user=user,
-            product=cart_item.product,
-            quantity=cart_item.quantity,
-            order_id=order_id
-        )
         cart_item.delete()
-
-    return redirect("orders")
-
+    return redirect('orders')
+    return JsonResponse({"message": "Payment processed successfully"}, status=200)
 
 
 @login_required
@@ -384,105 +445,79 @@ def search_products(request):
         return JsonResponse(product_list, safe=False)
 
 
-#-------------------------------------------------HDFC Payment GateWay----------
-# views.py
 
-# views.py
 
-import base64
-import requests
-from django.conf import settings
-from django.shortcuts import redirect, get_object_or_404
-from django.http import JsonResponse
-import json
+
 @login_required
 def initiate_payment(request):
     """
     Initiate payment with HDFC.
     """
     user = request.user
-    email = request.user.email
-    print("\n\n\t----request data ", user,email)
     cart_items = Cart.objects.filter(user=user)
-    Customer_detail = Customer.objects.filter(user=user)
+    
+    if not cart_items.exists():
+        return JsonResponse({"message": "No cart items found"}, status=404)
+    # Fetch customer details
+    customer = Customer.objects.filter(user=user).first()
+
+    # Check if customer details are available
+    if not customer:
+        messages.info(request, "Please fill out your profile details to continue with the payment.")
+        return redirect('profile')
 
     amount = sum(p.quantity * p.product.discounted_price for p in cart_items)
     shipping_amount = 70.0
     totalamount = amount + shipping_amount
 
+
+    order_id = f"order-{random.randint(1000, 9999)}"
+    for cart_item in cart_items:
+        OrderPlaced.objects.create(
+            user=user,
+            customer=Customer.objects.get(user=user),
+            product=cart_item.product,
+            quantity=cart_item.quantity,
+            status="Pending",  # Here you may want to set an appropriate status
+            order_id=order_id
+        )
+
+    # order.save()  #
     # Prepare data for HDFC API
-    order_id = f"order-{random.randint(1000, 9999)}"  # Generate a unique order ID
-    customer = Customer.objects.filter(user=user).first()
-    
     payload = {
-        "order_id": order_id,
+        "order_id": order_id,  # Use the generated order_id
         "amount": str(totalamount),
-        # "customer_id": user.id,
-        "customer_id":  str(user.id),
+        "customer_id": str(user.id),
         "customer_email": str(user.email),
-        "customer_phone": str(customer.mobile_number),  # Ensure phone number is in user profile
+        "customer_phone": str(customer.mobile_number),
         "payment_page_client_id": settings.HDFC_CLIENT_ID,
         "action": "paymentPage",
         "currency": "INR",
-        # "return_url": request.build_absolute_uri('/paymentdone'),
-        "return_url": 'https://shivayinternational.co',
+        "return_url": request.build_absolute_uri('/paymentdone/'),
         "description": "Complete your payment",
         "first_name": customer.first_name,
         "last_name": customer.last_name,
-        "metadata.JUSPAY:gateway_reference_id": "payu_test",
     }
-    """
-    curl --location 'https://smartgatewayuat.hdfcbank.com/session' \
-    --header 'Authorization: Basic base_64_encoded_api_key==' \
-    --header 'Content-Type: application/json' \
-    --header 'x-merchantid: merchant_id' \
-    --header 'x-customerid: customer_id' \
-    --header 'Authorization: Basic MjMzQTJBRjQ2REI0NTNCOTQ0Q0JBMUFCNDlGOTIyOg==' \
-    --data-raw '{
-        "order_id": " testing-order-one",
-        "amount": "10.0",
-        "customer_id": "testing-customer-one",
-        "customer_email": "test@mail.com",
-        "customer_phone": "8604613494",
-        "payment_page_client_id": "your_client_id",
-        "action": "paymentPage",
-        "currency": "INR",
-        "return_url": "https://shop.merchant.com",
-        "description": "Complete your payment",
-        "first_name": "John",
-        "last_name": "wick"
-        "metadata.JUSPAY:gateway_reference_id": "payu_test",
-    }
-    '
-    """
 
     # Prepare headers
     api_key = settings.HDFC_API_KEY
     merchant_id = settings.HDFC_MERCHANT_ID
     encoded_credentials = base64.b64encode(f"{api_key}:".encode()).decode()
-    print("\n\n\t--encode",encoded_credentials)
 
     headers = {
         'Authorization': f'Basic {encoded_credentials}',
         'Content-Type': 'application/json',
         'x-merchantid': merchant_id,
-        # 'x-customerid': user.username
         'x-customerid': str(user.id)
     }
-    print("\n\n\t---Payload", payload)
-    print("\n\n\t---headers", headers)
+    
     # Send request to HDFC
     response = requests.post('https://smartgatewayuat.hdfcbank.com/session', json=payload, headers=headers)
 
     # Handle response
     if response.status_code == 200:
         response_data = response.json()
-        print("\n\n\t---Response Data", response_data)
         payment_url = response_data['payment_links']['web']
-        print("\n\n\t--Payment url", payment_url)
         return redirect(payment_url)
     else:
-        # return response#.status_code
-        return JsonResponse({'error': 'Payment initiation failed', 'status':response.status_code, 'response':response.json()}, status=response.status_code)
-
-        # return JsonResponse({'error': 'Payment initiation failed'}, status=400)
+        return JsonResponse({'error': 'Payment initiation failed', 'status': response.status_code, 'response': response.json()}, status=response.status_code)

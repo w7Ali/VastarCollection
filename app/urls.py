@@ -48,9 +48,7 @@ urlpatterns = [
 auth_urls = [
     path(
         "accounts/login/",
-        auth_views.LoginView.as_view(
-            template_name="app/authentication/login.html", authentication_form=LoginForm
-        ),
+        views.CustomLoginView.as_view(),
         name="login",
     ),
     path('accounts/logout/', views.user_logout, name='logout'),

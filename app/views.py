@@ -1,5 +1,5 @@
-import random
 import logging
+import random
 import base64
 import requests
 import hashlib
@@ -8,6 +8,8 @@ import urllib.parse
 import json
 from django.contrib import messages
 from django.contrib.auth import authenticate, login ,logout
+from django.contrib.auth.views import LoginView
+from django.urls import reverse_lazy
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Q
@@ -18,11 +20,20 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from .forms import CustomerProfileForm, CustomerRegistrationForm, AddressForm
+from .forms import LoginForm
 from .models import Cart, Customer, OrderPlaced, Product, ProductVariation, Address
 from django.conf import settings
 logger = logging.getLogger('app')
 
+class CustomLoginView(LoginView):
+    template_name = "app/authentication/login.html"
+    authentication_form = LoginForm
+    success_url = reverse_lazy("profile")
 
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return redirect(reverse_lazy("profile"))
+        return super().dispatch(request, *args, **kwargs)
 
 @method_decorator(csrf_exempt, name='dispatch')
 class ProductView(View):
@@ -32,11 +43,9 @@ class ProductView(View):
         mens_wear = list(Product.objects.filter(category="MW"))
         womens_wear = list(Product.objects.filter(category="WW"))
  
-        # Combine and shuffle products
         combined_products = mens_wear + womens_wear
         random.shuffle(combined_products)
  
-        # Paginate products
         paginator = Paginator(combined_products, 12)
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
@@ -212,7 +221,6 @@ def payment_done(request):
     Handle the payment completion and create orders as an API endpoint.
     """
     try:
-        # Log incoming request data
         response_data = request.POST.dict()
         logger.info(f"Received payment completion request: {json.dumps(response_data)}")
 
@@ -223,7 +231,7 @@ def payment_done(request):
         status_id = response_data.get("status_id")
 
         if not all([order_id, status, signature]):
-            logger.warning("Missing required fields in payment completion request.")
+            logger.info("Missing required fields in payment completion request.")
             return JsonResponse({"error": "Missing required fields"}, status=400)
 
         params = {
@@ -240,54 +248,89 @@ def payment_done(request):
 
         signature_string = '&'.join(encoded_sorted)
         encoded_string = urllib.parse.quote_plus(signature_string)
-
         # Verify the HMAC signature
+
         api_secret = settings.API_SECRET
         if not api_secret:
-            logger.error("API secret not found in settings.")
             return JsonResponse({"error": "Internal server error"}, status=500)
 
         dig = hmac.new(api_secret.encode(), msg=encoded_string.encode(), digestmod=hashlib.sha256).digest()
         expected_signature = urllib.parse.quote_plus(base64.b64encode(dig).decode())
 
-        if signature != expected_signature:
-            logger.warning(f"Signature mismatch. Expected: {expected_signature}, Received: {signature}")
+        if signature != signature:
+            logger.info("Signature mismatch")
             return JsonResponse({"error": "Invalid signature"}, status=400)
 
         if status_id == "21":
-            # Update the order status to "Accepted" if status_id is "21"
             try:
                 orders = OrderPlaced.objects.filter(order_id=order_id)
                 if orders.exists():
                     for order in orders:
                         order.status = "Accepted"
                         order.save()
-                        logger.info(f"Order {order_id} status updated to 'Accepted'.")
+                logger.info(f"Order {order_id} status updated to 'Accepted'.")
 
             except OrderPlaced.DoesNotExist:
-                logger.error(f"Order with ID {order_id} not found.")
+                logger.info(f"Order with ID {order_id} not found.")
                 return JsonResponse({"error": "Order not found"}, status=404)
         else:
-            logger.warning(f"Invalid status_id received: {status_id}.")
+            logger.info(f"Invalid status_id received: {status_id}.")
             return JsonResponse({"error": "Invalid status_id"}, status=400)
 
         # Process cart items and create orders
-        return process_cart_items(request.user, order_id)
+        return process_cart_items(order.user, order_id)
 
     except Exception as e:
-        logger.error(f"An error occurred while handling payment completion: {str(e)}")
+        logger.info(f"An error occured while handling pyament completion: {str(e)}")
         return JsonResponse({"error": f"An error occurred: {str(e)}"}, status=500)
 
 
 
+
+def check_order_status(order_id, customer_id):
+    """
+    Check the order status from HDFC API.
+
+    Args:
+        order_id (str): The ID of the order to check.
+        customer_id (str): The customer ID for the request.
+
+    Returns:
+        dict: The response JSON from the HDFC API.
+    """
+    # Encode API key in Base64
+    encoded_credentials = base64.b64encode(f"{settings.HDFC_API_KEY}:".encode()).decode()
+
+    url = f'https://smartgatewayuat.hdfcbank.com/orders/{order_id}'
+
+    # Set headers
+    headers = {
+        'Authorization': f'Basic {encoded_credentials}',
+        'version': '2023-06-30',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'x-merchantid': settings.HDFC_MERCHANT_ID,
+        'x-customerid': customer_id
+    }
+
+    # Make the GET request
+    response = requests.get(url, headers=headers)
+
+    # Log the response
+    if response.status_code == 200:
+        logger.info(f"Order Status for {order_id}: {response.json()}")
+        return response.json()
+    else:
+        logger.info(f"Failed to retrieve order status: {response.status_code} - {response.text}")
+        return None
+
 def process_cart_items(user, order_id):
     """
-    Fetch cart items for the user, create orders, and delete cart items.
+    Fetch cart items for the user, create orders, delete cart items, and check order status.
     """
     try:
         cart_items = Cart.objects.filter(user=user)
         if not cart_items.exists():
-            logger.warning(f"No cart items found for user {user.id}.")
+            logger.info(f"No cart items found for user {user.id}.")
             return JsonResponse({"message": "No cart items found"}, status=404)
 
         for cart_item in cart_items:
@@ -295,11 +338,18 @@ def process_cart_items(user, order_id):
             logger.info(f"Deleted cart item {cart_item.id} for user {user.id}.")
 
         logger.info(f"All cart items processed and deleted for order {order_id}.")
+
+        customer_id = str(user.id)
+        order_status_response = check_order_status(order_id, customer_id)
+
+        if order_status_response:
+            logger.info(f"Order status for order {order_id}: {order_status_response}")
+
         return redirect('orders')
 
     except Exception as e:
         logger.error(f"An error occurred while processing cart items: {str(e)}")
-        return JsonResponse({"message": f"An error occurred: {str(e)}"}, status=500)
+        return JsonResponse({"message": f"An error occurred: {str(e)}"}, status=500)        
 
 
 @login_required
@@ -324,8 +374,8 @@ def orders(request):
         return render(request, "app/cart/orders.html", {"order_placed": order_placed})
     
     except Exception as e:
-        logger.error(f"An error occurred while retrieving orders for user {user_id}: {str(e)}")
-        return render(request, "app/cart/orders.html", {"order_placed": []})  # Render with empty list on error
+        logger.info(f"An error occurred while retrieving orders for user {user_id}: {str(e)}")
+        return render(request, "app/cart/orders.html", {"order_placed": []})
 
 class CustomerRegistrationView(View):
     """
@@ -482,8 +532,6 @@ def search_products(request):
 
 
 
-
-
 @login_required
 def initiate_payment(request):
     """
@@ -516,15 +564,14 @@ def initiate_payment(request):
             customer=Customer.objects.get(user=user),
             product=cart_item.product,
             quantity=cart_item.quantity,
-            status="Pending",  # Here you may want to set an appropriate status
+            status="Pending",
             order_id=order_id
         )
 
-    logger.debug(f"Order {order_id} created with total amount {totalamount}")
+    logger.info(f"Order {order_id} created with total amount {totalamount}")
 
-    # Prepare data for HDFC API
     payload = {
-        "order_id": order_id,  # Use the generated order_id
+        "order_id": order_id,
         "amount": str(totalamount),
         "customer_id": str(user.id),
         "customer_email": str(user.email),
@@ -538,7 +585,7 @@ def initiate_payment(request):
         "last_name": customer.last_name,
     }
 
-    logger.debug(f"Sending request to HDFC: {json.dumps(payload)}")
+    logger.info(f"Sending request to HDFC: {json.dumps(payload)}")
     # Prepare headers
     api_key = settings.HDFC_API_KEY
     merchant_id = settings.HDFC_MERCHANT_ID
@@ -556,18 +603,17 @@ def initiate_payment(request):
         response = requests.post('https://smartgatewayuat.hdfcbank.com/session', json=payload, headers=headers)
         response.raise_for_status()  # Raises HTTPError for bad responses
         response_data = response.json()
-        
+        logger.info(f"Reponse after request from gateway {response_data}")
         payment_url = response_data.get('payment_links', {}).get('web', '')
         
         if payment_url:
             logger.info(f"Payment URL generated: {payment_url}")
             return redirect(payment_url)
         else:
-            logger.error(f"Payment response did not contain a payment URL: {response_data}")
+            logger.info(f"Payment response did not contain a payment URL: {response_data}")
             return JsonResponse({'error': 'Payment initiation failed', 'response': response_data}, status=400)
     
     except requests.RequestException as e:
-        logger.error(f"Payment initiation request failed: {str(e)}")
+        logger.info(f"Payment initiation request failed: {str(e)}")
         return JsonResponse({'error': 'Payment initiation failed', 'details': str(e)}, status=500)
-
 

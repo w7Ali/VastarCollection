@@ -1,3 +1,4 @@
+import random
 import sys
 from io import BytesIO
 
@@ -6,10 +7,10 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django_resized import ResizedImageField
-from .utils import resize_image
 from PIL import Image as PILImage
 
 from .constants import CATEGORY_CHOICES, STATE_CHOICES, STATUS_CHOICES
+from .utils import resize_image
 
 
 class Customer(models.Model):
@@ -23,14 +24,13 @@ class Customer(models.Model):
     def __str__(self):
         return self.user.username
 
+
 class Address(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     full_name = models.CharField(max_length=200)
     mobile_number = models.BigIntegerField(blank=True, null=True)
-    # house_number = models.CharField(max_length=200)
-    # street_number = models.CharField(max_length=200)
     locality = models.CharField(max_length=200)
-    land_mark =  models.CharField(max_length=200)
+    land_mark = models.CharField(max_length=200)
     city = models.CharField(max_length=50)
     zipcode = models.IntegerField()
     state = models.CharField(choices=STATE_CHOICES, max_length=50)
@@ -102,40 +102,6 @@ class Product(models.Model):
         )
 
 
-# class Product(models.Model):
-#     title = models.CharField(max_length=100)
-#     selling_price = models.FloatField()
-#     discounted_price = models.FloatField()
-#     description = models.TextField()
-#     brand = models.CharField(max_length=100)
-#     category = models.CharField(choices=CATEGORY_CHOICES, max_length=2)
-#     product_image = models.ImageField(upload_to="productimg", blank=True, null=True)
-
-#     def save(self, *args, **kwargs):
-#         if self.product_image:
-#             img = PILImage.open(self.product_image)
-#             if img.height > 700 or img.width > 400:
-#                 output_size = (700, 400)
-#                 img.thumbnail(output_size)
-#                 in_mem_file = BytesIO()
-#                 img.save(in_mem_file, format="JPEG", quality=95)
-#                 in_mem_file.seek(0)
-#                 self.product_image = InMemoryUploadedFile(
-#                     in_mem_file,
-#                     "ImageField",
-#                     f"{self.product_image.name.split('.')[0]}.jpg",
-#                     "image/jpeg",
-#                     sys.getsizeof(in_mem_file),
-#                     None,
-#                 )
-#         super(Product, self).save(*args, **kwargs)
-
-#     def __str__(self):
-#         return (
-#             f"{self.title} | {self.brand} | {self.category} | {self.discounted_price}"
-#         )
-
-
 class ProductVariation(models.Model):
     product = models.ForeignKey(
         Product, related_name="variations", on_delete=models.CASCADE
@@ -156,8 +122,6 @@ class Cart(models.Model):
     def __str__(self):
         return str(self.id)
 
-        # Below Property will be used by checkout.html page to show total cost in order summary
-
     @property
     def total_cost(self):
         return self.quantity * self.product.discounted_price
@@ -170,8 +134,11 @@ class OrderPlaced(models.Model):
     quantity = models.PositiveIntegerField(default=1)
     ordered_date = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="Pending")
+    order_id = models.CharField(max_length=100, unique=False)
 
-    # Below Property will be used by orders.html page to show total cost
     @property
     def total_cost(self):
         return self.quantity * self.product.discounted_price
+
+    def __str__(self):
+        return f"Order {self.order_id} - {self.product.title}"

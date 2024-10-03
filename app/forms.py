@@ -12,7 +12,7 @@ from django.contrib.auth.models import User
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
 
-from .models import Customer, Address
+from .models import Address, Customer
 
 
 class CustomerRegistrationForm(UserCreationForm):
@@ -117,11 +117,19 @@ class CustomerProfileForm(forms.ModelForm):
         }
 
 
-class AddressForm(forms.ModelForm):  
+class AddressForm(forms.ModelForm):
     class Meta:
         model = Address
         # fields = ["full_name", "mobile_number", "house_number","street_number", "locality", "land_mark", "city", "zipcode", "state"]
-        fields = ["full_name", "mobile_number", "locality", "land_mark", "city", "zipcode", "state"]
+        fields = [
+            "full_name",
+            "mobile_number",
+            "locality",
+            "land_mark",
+            "city",
+            "zipcode",
+            "state",
+        ]
         widgets = {
             "full_name": forms.TextInput(attrs={"class": "form-control"}),
             "mobile_number": forms.NumberInput(attrs={"class": "form-control"}),

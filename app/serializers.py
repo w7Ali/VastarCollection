@@ -1,7 +1,7 @@
 # serializers.py
 from rest_framework import serializers
 
-from .models import CompanyDetail, Product, Address
+from .models import Address, CompanyDetail, Product
 
 
 class CompanyDetailSerializer(serializers.ModelSerializer):
@@ -26,8 +26,7 @@ class ProductSerializer(serializers.ModelSerializer):
         return 0
 
 
-
 class AddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Address
-        fields = '__all__'
+        fields = "__all__"

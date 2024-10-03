@@ -22,8 +22,11 @@
         </ul>
         <div class="card-footer bg-transparent border-0 text-center mb-3">
           <a href="{% url 'product-detail' ww.id %}" class="btn" style="background-color: #395839; color: white;">View Details</a>
-          <a href="#" class="btn btn-outline-secondary">Add to Cart</a>
-        </div>
+          <form action="/add-to-cart" class="d-inline">
+            {% csrf_token %}
+            <input type="hidden" name="prod_id" value="{{ ww.id }}">
+            <button type="submit" class="btn btn-outline-secondary">Add to Cart</button>
+        </form>        </div>
       </div>
     </div>
     {% endfor %}

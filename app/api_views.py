@@ -1,18 +1,22 @@
 import random
-from rest_framework import generics
-from rest_framework import status
+
+from django.db.models import ExpressionWrapper, F, FloatField
+from rest_framework import generics, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from django.db.models import ExpressionWrapper, F, FloatField
-from .models import CompanyDetail, Product, Address
-from .serializers import CompanyDetailSerializer, ProductSerializer, AddressSerializer
+
+from .models import Address, CompanyDetail, Product
+from .serializers import AddressSerializer, CompanyDetailSerializer, ProductSerializer
+
 
 class ProductListAPIView(generics.ListAPIView):
     serializer_class = ProductSerializer
+
     def get_queryset(self):
         all_products = list(Product.objects.all())
         random.shuffle(all_products)
         return all_products[:12]
+
 
 @api_view(["GET"])
 def company_detail_api(request):
@@ -24,7 +28,7 @@ def company_detail_api(request):
     except CompanyDetail.DoesNotExist:
         return Response(
             {"error": "Active company detail not found"},
-            status=status.HTTP_404_NOT_FOUND
+            status=status.HTTP_404_NOT_FOUND,
         )
 
     serializer = CompanyDetailSerializer(company_detail)
@@ -53,24 +57,28 @@ def latest_and_discount_product(request):
     highest_discount_products = (
         Product.objects.annotate(
             discount_percentage=ExpressionWrapper(
-                calculate_discount_percentage(F("selling_price"), F("discounted_price")),
-                output_field=FloatField()
+                calculate_discount_percentage(
+                    F("selling_price"), F("discounted_price")
+                ),
+                output_field=FloatField(),
             )
         )
         .exclude(discounted_price__isnull=True, discounted_price=0)
         .order_by("-discount_percentage")[:4]
     )
-    highest_discount_serializer = ProductSerializer(highest_discount_products, many=True)
+    highest_discount_serializer = ProductSerializer(
+        highest_discount_products, many=True
+    )
 
     # Combine both results into a single response
     data = {
         "latest_products": latest_serializer.data,
-        "highest_discount_products": highest_discount_serializer.data
+        "highest_discount_products": highest_discount_serializer.data,
     }
     return Response(data)
 
 
-@api_view(['PUT', 'PATCH'])
+@api_view(["PUT", "PATCH"])
 def update_address(request, id):
     """
     Update address details for a given address ID.
@@ -87,7 +95,7 @@ def update_address(request, id):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['DELETE'])
+@api_view(["DELETE"])
 def delete_address(request, id):
     """
     Delete address for a given address ID.
@@ -101,18 +109,21 @@ def delete_address(request, id):
     return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 def set_active_address(request):
     """
     Set a specific address as active and deactivate all other addresses for the user.
     """
     user = request.user
-    address_id = request.data.get('address_id')
+    address_id = request.data.get("address_id")
 
     try:
         address = Address.objects.get(id=address_id, user=user)
     except Address.DoesNotExist:
-        return Response({'success': False, 'error': 'Address not found'}, status=status.HTTP_404_NOT_FOUND)
+        return Response(
+            {"success": False, "error": "Address not found"},
+            status=status.HTTP_404_NOT_FOUND,
+        )
 
     # Deactivate all addresses for the user
     Address.objects.filter(user=user).update(is_active=False)
@@ -121,4 +132,4 @@ def set_active_address(request):
     address.is_active = True
     address.save()
 
-    return Response({'success': True}, status=status.HTTP_200_OK)
+    return Response({"success": True}, status=status.HTTP_200_OK)

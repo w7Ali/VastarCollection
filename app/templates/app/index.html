@@ -57,7 +57,11 @@
 
           <div class="card-footer bg-transparent border-0 text-center mb-3">
             <a href="{% url 'product-detail' product.id %}" class="btn" style="background-color: #395839; color: #fff;">View Details</a>
-            <a href="#" class="btn btn-outline-secondary">Add to Cart</a>
+            <form action="/add-to-cart" class="d-inline">
+              {% csrf_token %}
+              <input type="hidden" name="prod_id" value="{{ product.id }}">
+              <button type="submit" class="btn btn-outline-secondary">Add to Cart</button>
+          </form>
           </div>
         </div>
       </div>
@@ -141,5 +145,3 @@
 </div>
 {% include "app/policy/specialty_info.html" %}
 {% endblock main-content %}
-
- 

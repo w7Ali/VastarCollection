@@ -1,16 +1,16 @@
+import random
 import sys
 from io import BytesIO
-import random
 
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django_resized import ResizedImageField
-from .utils import resize_image
 from PIL import Image as PILImage
 
 from .constants import CATEGORY_CHOICES, STATE_CHOICES, STATUS_CHOICES
+from .utils import resize_image
 
 
 class Customer(models.Model):
@@ -24,12 +24,13 @@ class Customer(models.Model):
     def __str__(self):
         return self.user.username
 
+
 class Address(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     full_name = models.CharField(max_length=200)
     mobile_number = models.BigIntegerField(blank=True, null=True)
     locality = models.CharField(max_length=200)
-    land_mark =  models.CharField(max_length=200)
+    land_mark = models.CharField(max_length=200)
     city = models.CharField(max_length=50)
     zipcode = models.IntegerField()
     state = models.CharField(choices=STATE_CHOICES, max_length=50)
@@ -101,7 +102,6 @@ class Product(models.Model):
         )
 
 
-
 class ProductVariation(models.Model):
     product = models.ForeignKey(
         Product, related_name="variations", on_delete=models.CASCADE
@@ -122,11 +122,9 @@ class Cart(models.Model):
     def __str__(self):
         return str(self.id)
 
-
     @property
     def total_cost(self):
         return self.quantity * self.product.discounted_price
-
 
 
 class OrderPlaced(models.Model):

@@ -136,7 +136,7 @@ class OrderPlaced(models.Model):
     quantity = models.PositiveIntegerField(default=1)
     ordered_date = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="Pending")
-    order_id = models.CharField(max_length=100, unique=False)  # Ensure order_id is unique
+    order_id = models.CharField(max_length=100, unique=False)
 
     @property
     def total_cost(self):

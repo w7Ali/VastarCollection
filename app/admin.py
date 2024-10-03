@@ -1,20 +1,19 @@
-from django.contrib.admin import ModelAdmin
 from django.contrib import admin
-
-# from unfold.admin import ModelAdmin
-
+from django.contrib.admin import ModelAdmin
 from django.urls import reverse
 from django.utils.html import format_html
 
 from .models import (
+    Address,
     Cart,
     CompanyDetail,
     Customer,
     OrderPlaced,
     Product,
     ProductVariation,
-    Address
 )
+
+# from unfold.admin import ModelAdmin
 
 
 @admin.register(Customer)
@@ -40,7 +39,6 @@ class AddressModelAdmin(ModelAdmin):
     ]
     search_fields = ["full_name", "city", "zipcode"]
     list_filter = ["state", "city", "is_active"]
-
 
 
 @admin.register(Product)

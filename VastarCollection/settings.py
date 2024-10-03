@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-
+    
 from decouple import config
 
 
@@ -15,7 +15,7 @@ load_dotenv(dotenv_path)
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Security settings
-SECRET_KEY = "django-insecure-+nn6azn5#7-(tk#)lydhwb+a#m$!h))7ymk1n@8m#yjikdt0tb"#os.getenv('SECRET_KEY', 'default_secret_key')  # Default value for development
+SECRET_KEY = os.getenv('SECRET_KEY', 'default_secret_key')  # Default value for development
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 # Allowed hosts and CSRF settings

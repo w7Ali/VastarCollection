@@ -1,81 +1,85 @@
-  {% extends 'app/base.html' %}
-  {% load static %}
-  {% block title %}Orders{% endblock title %}
-  {% block main-content %}
-  <div class="container my-5">
-  <div class="row">
-    <h3>Welcome, {{ request.user }}</h3>
-    <div class="col-sm-2 border-end">
-    <ul class="list-unstyled">
-      <li class="d-grid"><a href="{% url 'orders' %}" class="btn btn-primary">Orders</a></li>
-    </ul>
-    </div> <!--1st Col Closed-->
-
-    <div class="col-sm-9 offset-sm-1">
-      {% regroup order_placed by order_id as orders_by_id %}
-      
-      {% for order_group in orders_by_id %}
-      <div class="card mb-4">
-        <div class="card-header bg-primary text-white">
-          <h4 class="card-title mb-0">Order ID: {{ order_group.grouper }}</h4>
+{% extends 'app/base.html' %}
+{% load static %}
+{% block title %}Orders{% endblock title %}
+{% block main-content %}
+<div class="container my-5">
+    <div class="row">
+        <h3>Welcome, {{ request.user }}</h3>
+        <div class="col-sm-2 border-end">
+            <ul class="list-unstyled">
+                <li class="d-grid"><a href="{% url 'orders' %}" class="btn btn-primary">Orders</a></li>
+            </ul>
         </div>
-        <div class="card-body">
-          {% for op in order_group.list %}
-          <div class="row mb-3 align-items-center">
-            <div class="col-sm-2">
-              <img src="{{ op.product.product_image.url }}" alt="Product Image" class="img-fluid" height="150" width="150">
-            </div>
-            <div class="col-sm-7">
-              <h5 class="card-text">{{ op.product.title }}</h5>
-              <p class="mb-1">Quantity: {{ op.quantity }}</p>
-              <p class="mb-1">Price: {{ op.total_cost }}</p>
-            </div>
-          </div>
 
-          <!-- Modern Horizontal Order Status Tracking -->
-          <div class="track">
-            <div class="step {% if op.status == 'Accepted' or op.status == 'Packed' or op.status == 'On The Way' or op.status == 'Delivered' %}active{% endif %}">
-              <span class="icon"> <i class="fa fa-check-circle"></i> </span>
-              <span class="text">Accepted</span>
+        <div class="col-sm-9 offset-sm-1">
+            {% if updated_orders %}
+            <div id="toast" class="alert alert-success" style="display: none;">
+                Order ID <strong>{{ updated_order_id }}</strong> has been updated!
             </div>
-            <div class="step {% if op.status == 'Packed' or op.status == 'On The Way' or op.status == 'Delivered' %}active{% endif %}">
-              <span class="icon"> <i class="fa fa-box"></i> </span>
-              <span class="text">Packed</span>
+            {% endif %}
+
+            {% regroup order_placed by order_id as orders_by_id %}
+            {% for order_group in orders_by_id %}
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="card-title mb-0">Order ID: {{ order_group.grouper }}</h4>
+                </div>
+                <div class="card-body">
+                    {% for op in order_group.list %}
+                    <div class="row mb-3 align-items-center">
+                        <div class="col-sm-2">
+                            <img src="{{ op.product.product_image.url }}" alt="Product Image" class="img-fluid" height="150" width="150">
+                        </div>
+                        <div class="col-sm-7">
+                            <h5 class="card-text">{{ op.product.title }}</h5>
+                            <p class="mb-1">Quantity: {{ op.quantity }}</p>
+                            <p class="mb-1">Price: {{ op.total_cost }}</p>
+                        </div>
+                    </div>
+
+                    <div class="track">
+                        <div class="step {% if op.status == 'CHARGED' or op.status == 'Packed' or op.status == 'On The Way' or op.status == 'Delivered' %}active{% endif %}">
+                            <span class="icon"> <i class="fa fa-check-circle"></i> </span>
+                            <span class="text">Accepted</span>
+                        </div>
+                        <div class="step {% if op.status == 'Packed' or op.status == 'On The Way' or op.status == 'Delivered' %}active{% endif %}">
+                            <span class="icon"> <i class="fa fa-box"></i> </span>
+                            <span class="text">Packed</span>
+                        </div>
+                        <div class="step {% if op.status == 'On The Way' or op.status == 'Delivered' %}active{% endif %}">
+                            <span class="icon"> <i class="fa fa-truck"></i> </span>
+                            <span class="text">On The Way</span>
+                        </div>
+                        <div class="step {% if op.status == 'Delivered' %}active{% endif %}">
+                            <span class="icon"> <i class="fa fa-check-double"></i> </span>
+                            <span class="text">Delivered</span>
+                        </div>
+                    </div>
+                    <hr>
+                    {% endfor %}
+                </div>
             </div>
-            <div class="step {% if op.status == 'On The Way' or op.status == 'Delivered' %}active{% endif %}">
-              <span class="icon"> <i class="fa fa-truck"></i> </span>
-              <span class="text">On The Way</span>
-            </div>
-            <div class="step {% if op.status == 'Delivered' %}active{% endif %}">
-              <span class="icon"> <i class="fa fa-check-double"></i> </span>
-              <span class="text">Delivered</span>
-            </div>
-          </div>
-          <hr>
-          {% endfor %}
+            {% endfor %}
         </div>
-      </div>
-      {% endfor %}
-    </div> <!-- 2nd Col Closed -->
-  </div> <!-- Row Closed -->
-  </div> <!-- Container Closed -->
+    </div>
+</div>
 
-  <style>
-  .track {
+<style>
+.track {
     display: flex;
     justify-content: space-between;
     margin-top: 20px;
     position: relative;
-  }
+}
 
-  .track .step {
+.track .step {
     text-align: center;
     position: relative;
     flex: 1;
     color: #6c757d; /* Dark grey for inactive steps */
-  }
+}
 
-  .track .step .icon {
+.track .step .icon {
     display: inline-block;
     width: 40px;
     height: 40px;
@@ -84,23 +88,23 @@
     border-radius: 50%;
     color: white;
     margin-bottom: 10px;
-  }
+}
 
-  .track .step.active .icon {
+.track .step.active .icon {
     background: #007bff; /* Blue for active steps */
-  }
+}
 
-  .track .step .text {
+.track .step .text {
     display: block;
     font-size: 14px;
     color: inherit; /* Inherit color from .step */
-  }
+}
 
-  .track .step.active .text {
+.track .step.active .text {
     color: #007bff; /* Blue for active steps */
-  }
+}
 
-  .track::before {
+.track::before {
     content: "";
     position: absolute;
     width: 100%;
@@ -109,11 +113,56 @@
     top: 20px;
     left: 0;
     z-index: 0;
-  }
+}
 
-  .track .step.active::before {
+.track .step.active::before {
     background: #007bff; /* Blue for active steps */
-  }
+}
 
-  </style>
-  {% endblock main-content %}
+#toast {
+    position: fixed;
+    top: 20px;  /* Position at the top */
+    right: 20px;
+    z-index: 1050; /* Bootstrap toast z-index */
+    display: block;
+    animation: fadeIn 0.5s, fadeOut 0.5s 3s; /* Animation effects */
+    transform: translateZ(0); /* Enable 3D rendering */
+    perspective: 1000; /* For 3D effect */
+}
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(-20px) rotateY(0deg);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) rotateY(0deg);
+    }
+}
+
+@keyframes fadeOut {
+    0% {
+        opacity: 1;
+        transform: translateY(0) rotateY(0deg);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-20px) rotateY(0deg);
+    }
+}
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        {% if updated_orders %}
+            var toast = document.getElementById('toast');
+            toast.style.display = 'block';
+            setTimeout(function() {
+                toast.style.display = 'none';
+            }, 4000); // Toast will disappear after 4 seconds
+        {% endif %}
+    });
+</script>
+
+{% endblock main-content %}

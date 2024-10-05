@@ -241,12 +241,15 @@ def payment_done(request):
     try:
         response_data = request.POST.dict()
         logger.info(f"\n\nReceived payment completion request: {json.dumps(response_data, indent=4)}")
-
+                    
         order_id = response_data.get("order_id")
         status = response_data.get("status")
         signature = response_data.get("signature")
         signature_algorithm = response_data.get("signature_algorithm")
         status_id = response_data.get("status_id")
+
+        user = OrderPlaced.objects.filter(order_id=order_id).first()
+        order_status_response = check_order_status(order_id, str(user))
 
         if not all([order_id, status, signature]):
             logger.info("\nMissing required fields in payment completion request.")

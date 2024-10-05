@@ -5,6 +5,8 @@ import json
 import logging
 import random
 import urllib.parse
+import uuid
+
 
 import requests
 from django.conf import settings
@@ -250,30 +252,28 @@ def payment_done(request):
             logger.info("Missing required fields in payment completion request.")
             return JsonResponse({"error": "Missing required fields"}, status=400)
 
-        params = {"order_id": order_id, "status": status, "status_id": status_id}
+        params = {
+            "signature": signature,
+            "order_id": order_id,
+            "status": status,
+            "signature_algorithm": signature_algorithm,
+            "status_id": status_id
+        }
 
-        encoded_sorted = []
-        for key in sorted(params.keys()):
-            encoded_sorted.append(
-                urllib.parse.quote_plus(key)
-                + "="
-                + urllib.parse.quote_plus(params[key])
-            )
-
-        signature_string = "&".join(encoded_sorted)
-        encoded_string = urllib.parse.quote_plus(signature_string)
-        # Verify the HMAC signature
-
+        # Extract desired parameters
         api_secret = settings.API_SECRET
-        if not api_secret:
-            return JsonResponse({"error": "Internal server error"}, status=500)
+        relevant_params = {k: v for k, v in params.items() if k not in ("signature", "signature_algorithm")}
+        encoded_sorted = []
+        for key in sorted(relevant_params.keys()):
+            encoded_key = urllib.parse.quote_plus(key)
+            encoded_value = urllib.parse.quote_plus(relevant_params[key])
+            encoded_sorted.append(f"{encoded_key}={encoded_value}")
 
-        dig = hmac.new(
-            api_secret.encode(), msg=encoded_string.encode(), digestmod=hashlib.sha256
-        ).digest()
-        expected_signature = urllib.parse.quote_plus(base64.b64encode(dig).decode())
+        encoded_string = urllib.parse.quote_plus("&".join(encoded_sorted))
+        dig = hmac.new(api_secret.encode('utf-8'), encoded_string.encode('utf-8'), digestmod=hashlib.sha256).digest()
+        expected_signature = base64.b64encode(dig).decode()
 
-        if signature != signature:
+        if signature != expected_signature:
             logger.info("Signature mismatch")
             return JsonResponse({"error": "Invalid signature"}, status=400)
 
@@ -299,7 +299,6 @@ def payment_done(request):
     except Exception as e:
         logger.info(f"An error occured while handling pyament completion: {str(e)}")
         return JsonResponse({"error": f"An error occurred: {str(e)}"}, status=500)
-
 
 def check_order_status(order_id, customer_id):
     """
@@ -608,7 +607,9 @@ def initiate_payment(request):
     shipping_amount = 70.0
     totalamount = amount + shipping_amount
 
-    order_id = f"order-{random.randint(1000, 9999)}"
+
+    order_id = f"order-{uuid.uuid4()}"
+
     for cart_item in cart_items:
         OrderPlaced.objects.create(
             user=user,

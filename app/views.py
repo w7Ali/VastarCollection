@@ -257,7 +257,7 @@ def payment_done(request):
             "order_id": order_id,
             "status": status,
             "signature_algorithm": signature_algorithm,
-            "sstatus_id": status_id
+            "status_id": status_id
         }
 
         # Extract desired parameters

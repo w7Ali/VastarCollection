@@ -257,7 +257,7 @@ def payment_done(request):
             "order_id": order_id,
             "status": status,
             "signature_algorithm": signature_algorithm,
-            "status_id": status_id
+            "sstatus_id": status_id
         }
 
         # Extract desired parameters
@@ -277,14 +277,17 @@ def payment_done(request):
             logger.info("Signature mismatch")
             return JsonResponse({"error": "Invalid signature"}, status=400)
 
+        # Update order status based on status_id
         if status_id == "21":
             try:
                 orders = OrderPlaced.objects.filter(order_id=order_id)
                 if orders.exists():
                     for order in orders:
-                        order.status = "CHARGED"
+                        order.status = "Accepted"  # Update status to "Accepted"
                         order.save()
-                logger.info(f"\n\nOrder {order_id} status updated to 'Accepted'.")
+                    logger.info(f"\n\nOrder {order_id} status updated to 'Accepted'.")
+                    # Process cart items after the status is set to 'Accepted'
+                    return process_cart_items(order.user, order_id)
 
             except OrderPlaced.DoesNotExist:
                 logger.info(f"\n\nOrder with ID {order_id} not found.")
@@ -293,12 +296,10 @@ def payment_done(request):
             logger.info(f"\n\nInvalid status_id received: {status_id}.")
             return JsonResponse({"error": "Invalid status_id"}, status=400)
 
-        # Process cart items and create orders
-        return process_cart_items(order.user, order_id)
-
     except Exception as e:
-        logger.info(f"\n\nAn error occured while handling pyament completion: {str(e)}")
+        logger.info(f"\n\nAn error occurred while handling payment completion: {str(e)}")
         return JsonResponse({"error": f"An error occurred: {str(e)}"}, status=500)
+
 
 def check_order_status(order_id, customer_id):
     """
@@ -335,19 +336,15 @@ def check_order_status(order_id, customer_id):
         response_json = response.json()
         logger.info("\n#####start######\nStatus Order API\n#####end######")
         logger.info(f"Order {order_id} status updated to: {json.dumps(response_json, indent=4)}")
-        logger.info(f"Order Status for {order_id}: {json.dumps(response_json, indent=4)}")
         return response_json
-
     else:
-        logger.info(
-            f"Failed to retrieve order status: {response.status_code} - {response.text}"
-        )
+        logger.info(f"Failed to retrieve order status: {response.status_code} - {response.text}")
         return None
 
 
 def process_cart_items(user, order_id):
     """
-    Fetch cart items for the user, create orders, delete cart items, and check order status.
+    Fetch cart items for the user and create orders.
     """
     try:
         cart_items = Cart.objects.filter(user=user)
@@ -360,14 +357,6 @@ def process_cart_items(user, order_id):
             logger.info(f"\n\nDeleted cart item {cart_item.id} for user {user.id}.")
 
         logger.info(f"\n\nAll cart items processed and deleted for order {order_id}.")
-
-        customer_id = str(user.id)
-        order_status_response = check_order_status(order_id, customer_id)
-
-
-        if order_status_response:
-            logger.info(f'\n\nOrder status for order {order_id}\t {json.dumps(order_status_response, indent=4)}')
-
 
         return redirect("orders")
 
@@ -393,20 +382,20 @@ def orders(request):
 
         if order_placed.exists():
             for order in order_placed:
-                # Only fetch the status if the current status is "Pending"
+                # Only check the status if the current status is "Pending"
                 if order.status == "Pending":
+                    # Call the order status API to get the latest status
                     order_status_response = check_order_status(order.order_id, str(user_id))
                     
                     if order_status_response:
-                        bank_status = order_status_response.get("status")
-                        if bank_status and bank_status != order.status:
-                            order.status = bank_status
+                        bank_status_id = order_status_response.get("status_id")
+                        if bank_status_id == 21:
+                            order.status = "Accepted"  # Update status to "Accepted"
                             order.save()
                             updated_orders = True  # Set the flag to True
                             updated_order_id = order.order_id  # Store the updated order ID
-                            logger.info(f"\n\nOrder {order.order_id} status updated to '{bank_status}'.")
-                            if bank_status == "CHARGED":
-                                process_cart_items(request.user, order.order_id)
+                            logger.info(f"\n\nOrder {order.order_id} status updated to 'Accepted'.")
+                            process_cart_items(request.user, order.order_id)  # Process cart items if status is accepted
 
         else:
             logger.info(f"\n\nNo orders found for user {user_id}.")
@@ -414,14 +403,13 @@ def orders(request):
         # Render the orders page
         return render(request, "app/cart/orders.html", {
             "order_placed": order_placed,
-            "updated_orders": updated_orders,  # Pass the flag to the template
-            "updated_order_id": updated_order_id,  # Pass the updated order ID
+            "updated_orders": updated_orders,
+            "updated_order_id": updated_order_id,
         })
 
     except Exception as e:
         logger.error(f"An error occurred while retrieving orders for user {user_id}: {str(e)}")
         return render(request, "app/cart/orders.html", {"order_placed": [], "updated_orders": False, "updated_order_id": None})
-
 
 class CustomerRegistrationView(View):
     """

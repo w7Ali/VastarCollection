@@ -46,7 +46,7 @@ CATEGORY_CHOICES = (
 )
 
 STATUS_CHOICES = (
-    ("Accepted", "Accepted"),
+    ("CHARGED", "CHARGED"),
     ("Packed", "Packed"),
     ("On The Way", "On The Way"),
     ("Delivered", "Delivered"),

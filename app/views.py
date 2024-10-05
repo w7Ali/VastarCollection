@@ -240,7 +240,7 @@ def payment_done(request):
     """
     try:
         response_data = request.POST.dict()
-        logger.info(f"Received payment completion request: {json.dumps(response_data)}")
+        logger.info(f"\n\nReceived payment completion request: {json.dumps(response_data, indent=4)}")
 
         order_id = response_data.get("order_id")
         status = response_data.get("status")
@@ -249,7 +249,7 @@ def payment_done(request):
         status_id = response_data.get("status_id")
 
         if not all([order_id, status, signature]):
-            logger.info("Missing required fields in payment completion request.")
+            logger.info("\nMissing required fields in payment completion request.")
             return JsonResponse({"error": "Missing required fields"}, status=400)
 
         params = {
@@ -282,22 +282,22 @@ def payment_done(request):
                 orders = OrderPlaced.objects.filter(order_id=order_id)
                 if orders.exists():
                     for order in orders:
-                        order.status = "Accepted"
+                        order.status = "CHARGED"
                         order.save()
-                logger.info(f"Order {order_id} status updated to 'Accepted'.")
+                logger.info(f"\n\nOrder {order_id} status updated to 'Accepted'.")
 
             except OrderPlaced.DoesNotExist:
-                logger.info(f"Order with ID {order_id} not found.")
+                logger.info(f"\n\nOrder with ID {order_id} not found.")
                 return JsonResponse({"error": "Order not found"}, status=404)
         else:
-            logger.info(f"Invalid status_id received: {status_id}.")
+            logger.info(f"\n\nInvalid status_id received: {status_id}.")
             return JsonResponse({"error": "Invalid status_id"}, status=400)
 
         # Process cart items and create orders
         return process_cart_items(order.user, order_id)
 
     except Exception as e:
-        logger.info(f"An error occured while handling pyament completion: {str(e)}")
+        logger.info(f"\n\nAn error occured while handling pyament completion: {str(e)}")
         return JsonResponse({"error": f"An error occurred: {str(e)}"}, status=500)
 
 def check_order_status(order_id, customer_id):
@@ -332,8 +332,12 @@ def check_order_status(order_id, customer_id):
 
     # Log the response
     if response.status_code == 200:
-        logger.info(f"Order Status for {order_id}: {response.json()}")
-        return response.json()
+        response_json = response.json()
+        logger.info("\n#####start######\nStatus Order API\n#####end######")
+        logger.info(f"Order {order_id} status updated to: {json.dumps(response_json, indent=4)}")
+        logger.info(f"Order Status for {order_id}: {json.dumps(response_json, indent=4)}")
+        return response_json
+
     else:
         logger.info(
             f"Failed to retrieve order status: {response.status_code} - {response.text}"
@@ -348,20 +352,22 @@ def process_cart_items(user, order_id):
     try:
         cart_items = Cart.objects.filter(user=user)
         if not cart_items.exists():
-            logger.info(f"No cart items found for user {user.id}.")
+            logger.info(f"\n\nNo cart items found for user {user.id}.")
             return JsonResponse({"message": "No cart items found"}, status=404)
 
         for cart_item in cart_items:
             cart_item.delete()
-            logger.info(f"Deleted cart item {cart_item.id} for user {user.id}.")
+            logger.info(f"\n\nDeleted cart item {cart_item.id} for user {user.id}.")
 
-        logger.info(f"All cart items processed and deleted for order {order_id}.")
+        logger.info(f"\n\nAll cart items processed and deleted for order {order_id}.")
 
         customer_id = str(user.id)
         order_status_response = check_order_status(order_id, customer_id)
 
+
         if order_status_response:
-            logger.info(f"Order status for order {order_id}: {order_status_response}")
+            logger.info(f'\n\nOrder status for order {order_id}\t {json.dumps(order_status_response, indent=4)}')
+
 
         return redirect("orders")
 
@@ -373,29 +379,48 @@ def process_cart_items(user, order_id):
 @login_required
 def orders(request):
     """
-    View to display all orders placed by the user.
+    View to display all orders placed by the user and check their status.
     """
+    updated_orders = False  # Track if any order was updated
+    updated_order_id = None  # Store the updated order ID
+
     try:
-        # Log user ID and action
         user_id = request.user.id
-        logger.info(f"User {user_id} is requesting their orders.")
+        logger.info(f"\n\nUser {user_id} is requesting their orders.")
 
         # Retrieve orders for the user
         order_placed = OrderPlaced.objects.filter(user=request.user)
 
         if order_placed.exists():
-            logger.info(f"Found {order_placed.count()} orders for user {user_id}.")
+            for order in order_placed:
+                # Only fetch the status if the current status is "Pending"
+                if order.status == "Pending":
+                    order_status_response = check_order_status(order.order_id, str(user_id))
+                    
+                    if order_status_response:
+                        bank_status = order_status_response.get("status")
+                        if bank_status and bank_status != order.status:
+                            order.status = bank_status
+                            order.save()
+                            updated_orders = True  # Set the flag to True
+                            updated_order_id = order.order_id  # Store the updated order ID
+                            logger.info(f"\n\nOrder {order.order_id} status updated to '{bank_status}'.")
+                            if bank_status == "CHARGED":
+                                process_cart_items(request.user, order.order_id)
+
         else:
-            logger.info(f"No orders found for user {user_id}.")
+            logger.info(f"\n\nNo orders found for user {user_id}.")
 
         # Render the orders page
-        return render(request, "app/cart/orders.html", {"order_placed": order_placed})
+        return render(request, "app/cart/orders.html", {
+            "order_placed": order_placed,
+            "updated_orders": updated_orders,  # Pass the flag to the template
+            "updated_order_id": updated_order_id,  # Pass the updated order ID
+        })
 
     except Exception as e:
-        logger.info(
-            f"An error occurred while retrieving orders for user {user_id}: {str(e)}"
-        )
-        return render(request, "app/cart/orders.html", {"order_placed": []})
+        logger.error(f"An error occurred while retrieving orders for user {user_id}: {str(e)}")
+        return render(request, "app/cart/orders.html", {"order_placed": [], "updated_orders": False, "updated_order_id": None})
 
 
 class CustomerRegistrationView(View):
@@ -620,7 +645,7 @@ def initiate_payment(request):
             order_id=order_id,
         )
 
-    logger.info(f"Order {order_id} created with total amount {totalamount}")
+    logger.info(f"\n\nOrder {order_id} created with total amount {totalamount}")
 
     payload = {
         "order_id": order_id,
@@ -637,7 +662,7 @@ def initiate_payment(request):
         "last_name": customer.last_name,
     }
 
-    logger.info(f"Sending request to HDFC: {json.dumps(payload)}")
+    logger.info(f"\n\nSending request to HDFC: {json.dumps(payload, indent=4)}")
     # Prepare headers
     api_key = settings.HDFC_API_KEY
     merchant_id = settings.HDFC_MERCHANT_ID
@@ -659,11 +684,12 @@ def initiate_payment(request):
         )
         response.raise_for_status()  # Raises HTTPError for bad responses
         response_data = response.json()
-        logger.info(f"Reponse after request from gateway {response_data}")
+        logger.info(f"\n\nResponse after request from gateway: {json.dumps(response_data, indent=4)}")
+
         payment_url = response_data.get("payment_links", {}).get("web", "")
 
         if payment_url:
-            logger.info(f"Payment URL generated: {payment_url}")
+            logger.info(f"\n\nPayment URL generated: {payment_url}")
             return redirect(payment_url)
         else:
             logger.info(
@@ -675,7 +701,7 @@ def initiate_payment(request):
             )
 
     except requests.RequestException as e:
-        logger.info(f"Payment initiation request failed: {str(e)}")
+        logger.info(f"\n\nPayment initiation request failed: {str(e)}")
         return JsonResponse(
             {"error": "Payment initiation failed", "details": str(e)}, status=500
         )

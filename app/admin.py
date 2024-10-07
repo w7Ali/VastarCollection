@@ -11,7 +11,7 @@ from .models import (
     OrderPlaced,
     Product,
     ProductVariation,
-    Receipt,
+    # Receipt,
     Transaction,
 )
 
@@ -43,9 +43,9 @@ class AddressModelAdmin(ModelAdmin):
     list_filter = ["state", "city", "is_active"]
 
 
-@admin.register(Receipt)
-class ReceiptModelAdmin(ModelAdmin):
-    list_display = [field.name for field in Receipt._meta.fields]
+# @admin.register(Receipt)
+# class ReceiptModelAdmin(ModelAdmin):
+#     list_display = [field.name for field in Receipt._meta.fields]
 
 
 @admin.register(Product)

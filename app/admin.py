@@ -11,6 +11,8 @@ from .models import (
     OrderPlaced,
     Product,
     ProductVariation,
+    Receipt,
+    Transaction,
 )
 
 # from unfold.admin import ModelAdmin
@@ -39,6 +41,11 @@ class AddressModelAdmin(ModelAdmin):
     ]
     search_fields = ["full_name", "city", "zipcode"]
     list_filter = ["state", "city", "is_active"]
+
+
+@admin.register(Receipt)
+class ReceiptModelAdmin(ModelAdmin):
+    list_display = [field.name for field in Receipt._meta.fields]
 
 
 @admin.register(Product)
@@ -126,3 +133,7 @@ class CompanyDetailAdmin(ModelAdmin):
 @admin.register(ProductVariation)
 class ProductVariationAdmin(ModelAdmin):
     list_display = ["id", "product", "size", "color", "pieces_remaining"]
+
+@admin.register(Transaction)
+class TransactionVariationAdmin(ModelAdmin):
+    list_display = ["id", "order", "shipping_address", "order_date", "total_cost", "order_items"]

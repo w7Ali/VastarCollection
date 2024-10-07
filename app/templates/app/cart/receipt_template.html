@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Receipt for Order {{ order.order_id }}</title>
+</head>
+<body>
+    <h1>Receipt for Order #{{ order.order_id }}</h1>
+    <p><strong>Date:</strong> {{ order.created_at }}</p>
+
+    <h2>Shipping Address</h2>
+    <p>{{ shipping_address }}</p>
+
+    <h2>Order Details</h2>
+    <ul>
+        {% for item in order_items %}
+        <li>{{ item.product.title }} - {{ item.quantity }} x {{ item.total_cost }}</li>
+        {% endfor %}
+    </ul>
+
+    <h3>Total Cost: {{ order.get_total_cost }}</h3>
+</body>
+</html>

@@ -32,7 +32,7 @@ from reportlab.pdfgen import canvas
 
 
 from .forms import AddressForm, CustomerProfileForm, CustomerRegistrationForm, LoginForm
-from .models import Address, Cart, Customer, OrderPlaced, Product, ProductVariation, Receipt, Transaction
+from .models import Address, Cart, Customer, OrderPlaced, Product, ProductVariation, Transaction
 
 logger = logging.getLogger("app")
 
@@ -238,24 +238,19 @@ def checkout(request):
     )
 
 
-def generate_receipt(order_id):
-    """
-    Generates a PDF receipt for the given order ID, saves it to the database,
-    and returns the receipt filename and file object.
-
-    Raises ObjectDoesNotExist if the order or address is not found.
-    """
-
+def generate_receipt(order_id, response_data):
+    print("\n\n\nCreating the Transcation History")
     try:
         filtered_orders = OrderPlaced.objects.filter(order_id=order_id)
         first_order = filtered_orders.first()
         order_date = first_order.ordered_date
         date = order_date.strftime('%Y-%m-%d %H:%M:%S %Z')
-        total_cost = sum(order_item.total_cost for order_item in filtered_orders) + 70  # Calculate total cost from all items
+        total_cost = first_order.total_cost  # Assuming total_cost is calculated on order creation
         shipping_address = first_order.address
     except ObjectDoesNotExist:
         return None, None  # Handle cases where order or address is not found
 
+    # Prepare receipt data
     receipt_data = {
         "shipping_address": {
             "Full Name": shipping_address.full_name,
@@ -271,7 +266,6 @@ def generate_receipt(order_id):
         "total": total_cost,
     }
 
-
     for order_item in filtered_orders:
         product = order_item.product
         product_details = {
@@ -281,44 +275,50 @@ def generate_receipt(order_id):
             "Discounted Price": product.discounted_price,
             "Brand": product.brand,
         }
-
         receipt_data["order_items"].append(product_details)
-    print("\nDict------", receipt_data)
-    buffer = BytesIO()
-    c = canvas.Canvas(buffer)
 
+    # Prepare transaction data
+    transaction_data = {
+        "order": first_order,
+        "shipping_address": str(receipt_data["shipping_address"]),
+        "order_date": order_date,
+        "total_cost": total_cost,
+        "order_items": receipt_data["order_items"],
+        "txn_id": response_data.get("txn_id"),
+        "payment_method_type": response_data.get("payment_method_type"),
+        "merchant_id": response_data.get("merchant_id"),
+        "txn_uuid": response_data.get("txn_uuid"),
+        "gateway": response_data.get("txn_detail", {}).get("gateway", ""),
+    }
 
-    c.setFont("Helvetica", 12)
-    c.drawString(100, 750, "Order Receipt")
-    y_position = 700
-    for key, value in receipt_data["shipping_address"].items():
-        c.drawString(100, y_position, f"{key}: {value}")
-        y_position -= 20  # Move down for each line
-    y_position -= 20  # Add some space
-    c.drawString(100, y_position, "Order Items:")
-    y_position -= 20
-    for item in receipt_data["order_items"]:
-        c.drawString(100, y_position, f"{item['Title']} x {item['Quantity']}")
-        y_position -= 15
+    # If the payment method is CARD, extract card details
+    if response_data.get("payment_method_type") == "CARD":
+        card_details = {
+            "expiry_year": response_data.get("card", {}).get("expiry_year"),
+            "expiry_month": response_data.get("card", {}).get("expiry_month"),
+            "name_on_card": response_data.get("card", {}).get("name_on_card"),
+            "card_issuer": response_data.get("card", {}).get("card_issuer"),
+            "last_four_digits": response_data.get("card", {}).get("last_four_digits"),
+            "card_type": response_data.get("card", {}).get("card_type"),
+            "card_brand": response_data.get("card", {}).get("card_brand"),
+            "card_issuer_country": response_data.get("card", {}).get("card_issuer_country"),
+        }
+        transaction_data["card_details"] = card_details
 
-    c.save()
-    pdf_file = ContentFile(buffer.getvalue())
-
-    receipt_filename = f"receipt_{order_id}.pdf"
-    print("\n\n\nReceipt", receipt_filename)
-
-    print("\n\n\nshipping_address",str(receipt_data["shipping_address"]))
-    print("\n\n\norder_items",receipt_data["order_items"])
+    # Save transaction to the database
     transaction = Transaction.objects.create(
         order=first_order,
-        shipping_address=str(receipt_data["shipping_address"]),  # Convert address to string if needed
-        order_date=order_date,
-        total_cost=total_cost,
-        order_items=receipt_data["order_items"],  # Store the order items as a JSON object
+        shipping_address=transaction_data["shipping_address"],
+        order_date=transaction_data["order_date"],
+        total_cost=transaction_data["total_cost"],
+        order_items=transaction_data["order_items"],
+        txn_id=transaction_data["txn_id"],
+        payment_method_type=transaction_data["payment_method_type"],
+        merchant_id=transaction_data["merchant_id"],
+        txn_uuid=transaction_data["txn_uuid"],
+        gateway=transaction_data["gateway"],
+        card_details=transaction_data.get("card_details", {})
     )
-    print("\n\nhereksdflksdfjlkd")
-
-
 
 @csrf_exempt
 def payment_done(request):
@@ -366,25 +366,15 @@ def payment_done(request):
 
         if status_id == "21":
             try:
-                print("\n\nherere1")
                 orders = OrderPlaced.objects.filter(order_id=order_id)
-                print("\n\nherere2")
-
-                generate_receipt(order_id)
-                print("\n\nherere3")
+                generate_receipt(order_id, order_status_response)
                 logger.info(f"\n\nReceipt generated for order {order_id}.")
 
                 if orders.exists():
-                    print("\n\n\n\n\nCreating Oders")
                     for order in orders:
                         order.status = "Accepted"
                         order.save()
-                    # generate_receipt(order_id)
-
-                    print("\n\n\n\n\nCreated Oders")
                     return process_cart_items(order.user, order_id)
-
-                    # return process_cart_items(orders)
 
             except OrderPlaced.DoesNotExist:
                 return JsonResponse({"error": "Order not found"}, status=404)
@@ -428,8 +418,9 @@ def check_order_status(order_id, customer_id):
     # Log the response
     if response.status_code == 200:
         response_json = response.json()
-        logger.info("\n#####start######\nStatus Order API\n#####end######")
+        logger.info("\n#####start################## \tStatus Order API\n")
         logger.info(f"Order {order_id} status updated to: {json.dumps(response_json, indent=4)}")
+        logger.info("\n\n#####end################## \tStatus Order API\n")
         return response_json
     else:
         logger.info(f"Failed to retrieve order status: {response.status_code} - {response.text}")
@@ -488,9 +479,9 @@ def orders(request):
                             order.save()
                             updated_orders = True  # Set the flag to True
                             updated_order_id = order.order_id  # Store the updated order ID
-                            generate_receipt(order.order_id)
+                            generate_receipt(order.order_id, order_status_response)
                             logger.info(f"\n\nOrder {order.order_id} status updated to 'Accepted'.")
-                            process_cart_items(request.user, order.order_id)  # Process cart items if status is accepted
+                            process_cart_items(request.user, order.order_id) 
 
         else:
             logger.info(f"\n\nNo orders found for user {user_id}.")
@@ -505,6 +496,54 @@ def orders(request):
     except Exception as e:
         logger.error(f"An error occurred while retrieving orders for user {user_id}: {str(e)}")
         return render(request, "app/cart/orders.html", {"order_placed": [], "updated_orders": False, "updated_order_id": None})
+from django.http import HttpResponse
+
+# @login_required
+# def get_transaction(request, order_id):
+#     # Retrieve the transaction based on the order_id
+#     transaction = get_object_or_404(Transaction, order_id=order_id)
+
+#     # Generate a PDF receipt (or any other format you want)
+#     response = HttpResponse(content_type='application/pdf')
+#     response['Content-Disposition'] = f'attachment; filename="receipt_{transaction.txn_id}.pdf"'  # Use transaction.txn_id
+
+#     # Create the receipt content
+#     receipt_content = f"""
+#     Receipt for Transaction ID: {transaction.txn_id}
+#     Shipping Address: {transaction.shipping_address}
+#     Order Date: {transaction.order_date}
+#     Total Cost: ${transaction.total_cost}
+#     Payment Method: {transaction.payment_method_type}
+#     Merchant ID: {transaction.merchant_id}
+#     Order Items: {transaction.order_items}
+#     """
+#     print("\n\n\nRecipt", receipt_content)
+#     # Write content to the response
+#     response.write(receipt_content)
+#     return response
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from django.template.loader import render_to_string
+from django.contrib.auth.decorators import login_required
+from weasyprint import HTML
+
+@login_required
+def get_transaction(request, order_id):
+    # Fetch the transaction
+    transaction = get_object_or_404(Transaction, order_id=order_id)
+
+    # Render the HTML template for the receipt
+    html_string = render_to_string('app/cart/receipt_template.html', {'transaction': transaction})
+
+    # Create a PDF response
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="receipt_{transaction.txn_id}.pdf"'
+
+    # Generate PDF from the HTML string
+    HTML(string=html_string).write_pdf(response)
+
+    return response
+
 
 class CustomerRegistrationView(View):
     """

@@ -146,22 +146,18 @@ class OrderPlaced(models.Model):
 
 
 
-class Receipt(models.Model):
-    order = models.ForeignKey(OrderPlaced, on_delete=models.CASCADE)
-    receipt_file = models.FileField(upload_to='receipts/')
-    shipping_address = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Receipt for Order {self.order.order_id}"
-
-
 class Transaction(models.Model):
-    order = models.ForeignKey(OrderPlaced, on_delete=models.CASCADE, unique=True)
-    shipping_address = models.JSONField()  # or JSONField for structured storage
+    order = models.OneToOneField(OrderPlaced, on_delete=models.CASCADE)
+    shipping_address = models.JSONField()
     order_date = models.DateTimeField()
     total_cost = models.FloatField()
-    order_items = models.JSONField()  # Store order items as JSON if you want flexibility
+    order_items = models.JSONField()
+    txn_id = models.CharField(max_length=255)
+    payment_method_type = models.CharField(max_length=50)
+    merchant_id = models.CharField(max_length=100)
+    txn_uuid = models.CharField(max_length=255)
+    gateway = models.CharField(max_length=50)
+    card_details = models.JSONField(null=True, blank=True)
 
     def __str__(self):
         return f"Transaction for Order {self.order.order_id}"

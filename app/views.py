@@ -6,6 +6,7 @@ import logging
 import random
 import urllib.parse
 import uuid
+from datetime import datetime
 
 
 import requests
@@ -22,9 +23,16 @@ from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
+from io import BytesIO
+from django.core.exceptions import ObjectDoesNotExist
+from django.template.loader import get_template
+from django.core.files.base import ContentFile
+
+from reportlab.pdfgen import canvas
+
 
 from .forms import AddressForm, CustomerProfileForm, CustomerRegistrationForm, LoginForm
-from .models import Address, Cart, Customer, OrderPlaced, Product, ProductVariation
+from .models import Address, Cart, Customer, OrderPlaced, Product, ProductVariation, Receipt, Transaction
 
 logger = logging.getLogger("app")
 
@@ -216,9 +224,6 @@ def checkout(request):
     """
     Checkout view to display addresses and cart items.
     """
-    if request.method == "POST":
-        return redirect("initiate-payment")
-
     user = request.user
     addresses = Address.objects.filter(user=user)
     cart_items = Cart.objects.filter(user=user)
@@ -233,11 +238,90 @@ def checkout(request):
     )
 
 
+def generate_receipt(order_id):
+    """
+    Generates a PDF receipt for the given order ID, saves it to the database,
+    and returns the receipt filename and file object.
+
+    Raises ObjectDoesNotExist if the order or address is not found.
+    """
+
+    try:
+        filtered_orders = OrderPlaced.objects.filter(order_id=order_id)
+        first_order = filtered_orders.first()
+        order_date = first_order.ordered_date
+        date = order_date.strftime('%Y-%m-%d %H:%M:%S %Z')
+        total_cost = sum(order_item.total_cost for order_item in filtered_orders) + 70  # Calculate total cost from all items
+        shipping_address = first_order.address
+    except ObjectDoesNotExist:
+        return None, None  # Handle cases where order or address is not found
+
+    receipt_data = {
+        "shipping_address": {
+            "Full Name": shipping_address.full_name,
+            "Locality": shipping_address.locality,
+            "City": shipping_address.city,
+            "State": shipping_address.state,
+            "ZipCode": shipping_address.zipcode,
+            "Mobile Number": shipping_address.mobile_number,
+            "Land Mark": shipping_address.land_mark,
+        },
+        "order_items": [],
+        "order_date": date,
+        "total": total_cost,
+    }
+
+
+    for order_item in filtered_orders:
+        product = order_item.product
+        product_details = {
+            "Title": product.title,
+            "Quantity": order_item.quantity,
+            "Selling Price": product.selling_price,
+            "Discounted Price": product.discounted_price,
+            "Brand": product.brand,
+        }
+
+        receipt_data["order_items"].append(product_details)
+    print("\nDict------", receipt_data)
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer)
+
+
+    c.setFont("Helvetica", 12)
+    c.drawString(100, 750, "Order Receipt")
+    y_position = 700
+    for key, value in receipt_data["shipping_address"].items():
+        c.drawString(100, y_position, f"{key}: {value}")
+        y_position -= 20  # Move down for each line
+    y_position -= 20  # Add some space
+    c.drawString(100, y_position, "Order Items:")
+    y_position -= 20
+    for item in receipt_data["order_items"]:
+        c.drawString(100, y_position, f"{item['Title']} x {item['Quantity']}")
+        y_position -= 15
+
+    c.save()
+    pdf_file = ContentFile(buffer.getvalue())
+
+    receipt_filename = f"receipt_{order_id}.pdf"
+    print("\n\n\nReceipt", receipt_filename)
+
+    print("\n\n\nshipping_address",str(receipt_data["shipping_address"]))
+    print("\n\n\norder_items",receipt_data["order_items"])
+    transaction = Transaction.objects.create(
+        order=first_order,
+        shipping_address=str(receipt_data["shipping_address"]),  # Convert address to string if needed
+        order_date=order_date,
+        total_cost=total_cost,
+        order_items=receipt_data["order_items"],  # Store the order items as a JSON object
+    )
+    print("\n\nhereksdflksdfjlkd")
+
+
+
 @csrf_exempt
 def payment_done(request):
-    """
-    Handle the payment completion and create orders as an API endpoint.
-    """
     try:
         response_data = request.POST.dict()
         logger.info(f"\n\nReceived payment completion request: {json.dumps(response_data, indent=4)}")
@@ -248,8 +332,8 @@ def payment_done(request):
         signature_algorithm = response_data.get("signature_algorithm")
         status_id = response_data.get("status_id")
 
-        user = OrderPlaced.objects.filter(order_id=order_id).first()
-        order_status_response = check_order_status(order_id, str(user))
+        order_placed_data = OrderPlaced.objects.filter(order_id=order_id).first()
+        order_status_response = check_order_status(order_id, str(order_placed_data.customer.id))
 
         if not all([order_id, status, signature]):
             logger.info("\nMissing required fields in payment completion request.")
@@ -280,27 +364,34 @@ def payment_done(request):
             logger.info("Signature mismatch")
             return JsonResponse({"error": "Invalid signature"}, status=400)
 
-        # Update order status based on status_id
         if status_id == "21":
             try:
+                print("\n\nherere1")
                 orders = OrderPlaced.objects.filter(order_id=order_id)
+                print("\n\nherere2")
+
+                generate_receipt(order_id)
+                print("\n\nherere3")
+                logger.info(f"\n\nReceipt generated for order {order_id}.")
+
                 if orders.exists():
+                    print("\n\n\n\n\nCreating Oders")
                     for order in orders:
-                        order.status = "Accepted"  # Update status to "Accepted"
+                        order.status = "Accepted"
                         order.save()
-                    logger.info(f"\n\nOrder {order_id} status updated to 'Accepted'.")
-                    # Process cart items after the status is set to 'Accepted'
+                    # generate_receipt(order_id)
+
+                    print("\n\n\n\n\nCreated Oders")
                     return process_cart_items(order.user, order_id)
 
-            except OrderPlaced.DoesNotExist:
-                logger.info(f"\n\nOrder with ID {order_id} not found.")
-                return JsonResponse({"error": "Order not found"}, status=404)
-        else:
-            logger.info(f"\n\nInvalid status_id received: {status_id}.")
-            return JsonResponse({"error": "Invalid status_id"}, status=400)
+                    # return process_cart_items(orders)
 
+            except OrderPlaced.DoesNotExist:
+                return JsonResponse({"error": "Order not found"}, status=404)
+
+        else:
+            return JsonResponse({"error": "Invalid status_id"}, status=400)
     except Exception as e:
-        logger.info(f"\n\nAn error occurred while handling payment completion: {str(e)}")
         return JsonResponse({"error": f"An error occurred: {str(e)}"}, status=500)
 
 
@@ -373,15 +464,15 @@ def orders(request):
     """
     View to display all orders placed by the user and check their status.
     """
-    updated_orders = False  # Track if any order was updated
-    updated_order_id = None  # Store the updated order ID
+    updated_orders = False
+    updated_order_id = None
 
     try:
         user_id = request.user.id
         logger.info(f"\n\nUser {user_id} is requesting their orders.")
 
         # Retrieve orders for the user
-        order_placed = OrderPlaced.objects.filter(user=request.user)
+        order_placed = OrderPlaced.objects.filter(user=request.user).order_by('-ordered_date')
 
         if order_placed.exists():
             for order in order_placed:
@@ -397,6 +488,7 @@ def orders(request):
                             order.save()
                             updated_orders = True  # Set the flag to True
                             updated_order_id = order.order_id  # Store the updated order ID
+                            generate_receipt(order.order_id)
                             logger.info(f"\n\nOrder {order.order_id} status updated to 'Accepted'.")
                             process_cart_items(request.user, order.order_id)  # Process cart items if status is accepted
 
@@ -623,8 +715,10 @@ def initiate_payment(request):
     shipping_amount = 70.0
     totalamount = amount + shipping_amount
 
-
     order_id = f"order-{uuid.uuid4()}"
+
+    selected_address_id = request.POST.get('custid')
+    selected_address = Address.objects.get(id=selected_address_id)
 
     for cart_item in cart_items:
         OrderPlaced.objects.create(
@@ -634,6 +728,7 @@ def initiate_payment(request):
             quantity=cart_item.quantity,
             status="Pending",
             order_id=order_id,
+            address=Address.objects.get(id=selected_address_id)
         )
 
     logger.info(f"\n\nOrder {order_id} created with total amount {totalamount}")
@@ -651,6 +746,7 @@ def initiate_payment(request):
         "description": "Complete your payment",
         "first_name": customer.first_name,
         "last_name": customer.last_name,
+        "shipping_address": f"{selected_address.full_name}, {selected_address.locality}, {selected_address.city}, {selected_address.state} - {selected_address.zipcode}",
     }
 
     logger.info(f"\n\nSending request to HDFC: {json.dumps(payload, indent=4)}")

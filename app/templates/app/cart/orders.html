@@ -37,6 +37,7 @@
                         </div>
                     </div>
 
+                    <!-- Progress Tracker for Order Status -->
                     <div class="track">
                         <div class="step {% if op.status == 'Accepted' or op.status == 'Packed' or op.status == 'On The Way' or op.status == 'Delivered' %}active{% endif %}">
                             <span class="icon"> <i class="fa fa-check-circle"></i> </span>
@@ -55,6 +56,14 @@
                             <span class="text">Delivered</span>
                         </div>
                     </div>
+
+                    <!-- Download Receipt Option (Visible after order is Accepted) -->
+                    {% if op.status == 'Accepted' or op.status == 'Delivered' %}
+                    <div class="mt-3">
+                        <a href="{{ op.receipt.receipt_file.url }}" class="btn btn-success" download>Download Receipt</a>
+                    </div>
+                    {% endif %}
+                    
                     <hr>
                     {% endfor %}
                 </div>
@@ -64,6 +73,7 @@
     </div>
 </div>
 
+<!-- Styles for progress tracker and toast -->
 <style>
 .track {
     display: flex;
@@ -153,6 +163,7 @@
 }
 </style>
 
+<!-- Script to show the toast notification -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         {% if updated_orders %}

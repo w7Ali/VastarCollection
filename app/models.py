@@ -135,6 +135,7 @@ class OrderPlaced(models.Model):
     ordered_date = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="Pending")
     order_id = models.CharField(max_length=100, unique=False)
+    address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True)  # Link to Address model
 
     @property
     def total_cost(self):
@@ -142,3 +143,25 @@ class OrderPlaced(models.Model):
 
     def __str__(self):
         return f"Order {self.order_id} - {self.product.title}"
+
+
+
+class Receipt(models.Model):
+    order = models.ForeignKey(OrderPlaced, on_delete=models.CASCADE)
+    receipt_file = models.FileField(upload_to='receipts/')
+    shipping_address = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Receipt for Order {self.order.order_id}"
+
+
+class Transaction(models.Model):
+    order = models.ForeignKey(OrderPlaced, on_delete=models.CASCADE, unique=True)
+    shipping_address = models.JSONField()  # or JSONField for structured storage
+    order_date = models.DateTimeField()
+    total_cost = models.FloatField()
+    order_items = models.JSONField()  # Store order items as JSON if you want flexibility
+
+    def __str__(self):
+        return f"Transaction for Order {self.order.order_id}"

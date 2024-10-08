@@ -239,18 +239,7 @@ def checkout(request):
 
 
 def generate_receipt(order_id, response_data):
-    """
-    Generates a PDF receipt for the given order ID, saves it to the database,
-    and returns the receipt filename and file object.
-
-    Args:
-        order_id: The ID of the order.
-        response_data: The response data from the order_status API.
-
-    Returns:
-        A tuple of the receipt filename and file object.
-    """
-    print("\n\n\nGenerating the Transcation Recipt")
+    print("\n\n\nCreating the Transcation History")
     try:
         filtered_orders = OrderPlaced.objects.filter(order_id=order_id)
         first_order = filtered_orders.first()
@@ -330,30 +319,6 @@ def generate_receipt(order_id, response_data):
         gateway=transaction_data["gateway"],
         card_details=transaction_data.get("card_details", {})
     )
-
-    # Create PDF receipt
-    buffer = BytesIO()
-    c = canvas.Canvas(buffer)
-    c.setFont("Helvetica", 12)
-    c.drawString(100, 750, "Order Receipt")
-    y_position = 700
-    for key, value in receipt_data["shipping_address"].items():
-        c.drawString(100, y_position, f"{key}: {value}")
-        y_position -= 20  # Move down for each line
-    y_position -= 20  # Add some space
-    c.drawString(100, y_position, "Order Items:")
-    y_position -= 20
-    for item in receipt_data["order_items"]:
-        c.drawString(100, y_position, f"{item['Title']} x {item['Quantity']}")
-        y_position -= 15
-
-    c.save()
-    pdf_file = ContentFile(buffer.getvalue())
-
-    receipt_filename = f"receipt_{order_id}.pdf"
-
-
-
 
 @csrf_exempt
 def payment_done(request):
@@ -531,6 +496,54 @@ def orders(request):
     except Exception as e:
         logger.error(f"An error occurred while retrieving orders for user {user_id}: {str(e)}")
         return render(request, "app/cart/orders.html", {"order_placed": [], "updated_orders": False, "updated_order_id": None})
+from django.http import HttpResponse
+
+# @login_required
+# def get_transaction(request, order_id):
+#     # Retrieve the transaction based on the order_id
+#     transaction = get_object_or_404(Transaction, order_id=order_id)
+
+#     # Generate a PDF receipt (or any other format you want)
+#     response = HttpResponse(content_type='application/pdf')
+#     response['Content-Disposition'] = f'attachment; filename="receipt_{transaction.txn_id}.pdf"'  # Use transaction.txn_id
+
+#     # Create the receipt content
+#     receipt_content = f"""
+#     Receipt for Transaction ID: {transaction.txn_id}
+#     Shipping Address: {transaction.shipping_address}
+#     Order Date: {transaction.order_date}
+#     Total Cost: ${transaction.total_cost}
+#     Payment Method: {transaction.payment_method_type}
+#     Merchant ID: {transaction.merchant_id}
+#     Order Items: {transaction.order_items}
+#     """
+#     print("\n\n\nRecipt", receipt_content)
+#     # Write content to the response
+#     response.write(receipt_content)
+#     return response
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from django.template.loader import render_to_string
+from django.contrib.auth.decorators import login_required
+from weasyprint import HTML
+
+@login_required
+def get_transaction(request, order_id):
+    # Fetch the transaction
+    transaction = get_object_or_404(Transaction, order_id=order_id)
+
+    # Render the HTML template for the receipt
+    html_string = render_to_string('app/cart/receipt_template.html', {'transaction': transaction})
+
+    # Create a PDF response
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="receipt_{transaction.txn_id}.pdf"'
+
+    # Generate PDF from the HTML string
+    HTML(string=html_string).write_pdf(response)
+
+    return response
+
 
 class CustomerRegistrationView(View):
     """

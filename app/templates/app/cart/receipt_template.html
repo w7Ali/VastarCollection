@@ -1,22 +1,42 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Receipt for Order {{ order.order_id }}</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receipt</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+        }
+        h1, h2 {
+            color: #007bff;
+        }
+        .receipt {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .details {
+            margin: 10px 0;
+        }
+    </style>
 </head>
 <body>
-    <h1>Receipt for Order #{{ order.order_id }}</h1>
-    <p><strong>Date:</strong> {{ order.created_at }}</p>
-
-    <h2>Shipping Address</h2>
-    <p>{{ shipping_address }}</p>
-
-    <h2>Order Details</h2>
-    <ul>
-        {% for item in order_items %}
-        <li>{{ item.product.title }} - {{ item.quantity }} x {{ item.total_cost }}</li>
-        {% endfor %}
-    </ul>
-
-    <h3>Total Cost: {{ order.get_total_cost }}</h3>
+    <div class="receipt">
+        <h1>Receipt for Transaction</h1>
+        <h2>Transaction ID: {{ transaction.txn_id }}</h2>
+        
+        <div class="details">
+            <strong>Shipping Address:</strong> {{ transaction.shipping_address }}<br>
+            <strong>Order Date:</strong> {{ transaction.order_date }}<br>
+            <strong>Total Cost:</strong> ${{ transaction.total_cost }}<br>
+            <strong>Payment Method:</strong> {{ transaction.payment_method_type }}<br>
+            <strong>Merchant ID:</strong> {{ transaction.merchant_id }}<br>
+            <strong>Order Items:</strong> {{ transaction.order_items }}<br>
+        </div>
+    </div>
 </body>
 </html>

@@ -104,7 +104,8 @@ auth_urls = [
     ),
     path("logout/", auth_views.LogoutView.as_view(next_page="login"), name="logout"),
     path("initiate-payment/", views.initiate_payment, name="initiate-payment"),
-    path('transaction/<int:order_id>', views.get_transaction, name='get-transaction'),
+    path('transaction/<str:order_id>', views.get_transaction, name='get-transaction'),
+    path('transaction/json/<str:order_id>/', views.get_transaction_json, name='get-transaction-json'),
 
 ]
 

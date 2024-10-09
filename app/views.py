@@ -7,7 +7,8 @@ import random
 import urllib.parse
 import uuid
 from datetime import datetime
-
+import ast
+from django.views.decorators.http import require_GET
 
 import requests
 from django.conf import settings
@@ -245,10 +246,12 @@ def generate_receipt(order_id, response_data):
         first_order = filtered_orders.first()
         order_date = first_order.ordered_date
         date = order_date.strftime('%Y-%m-%d %H:%M:%S %Z')
-        total_cost = first_order.total_cost  # Assuming total_cost is calculated on order creation
         shipping_address = first_order.address
     except ObjectDoesNotExist:
         return None, None  # Handle cases where order or address is not found
+
+    if response_data:
+        total_cost = response_data.get("amount") # Assuming total_cost is calculated on order creation
 
     # Prepare receipt data
     receipt_data = {
@@ -276,7 +279,6 @@ def generate_receipt(order_id, response_data):
             "Brand": product.brand,
         }
         receipt_data["order_items"].append(product_details)
-
     # Prepare transaction data
     transaction_data = {
         "order": first_order,
@@ -304,6 +306,7 @@ def generate_receipt(order_id, response_data):
             "card_issuer_country": response_data.get("card", {}).get("card_issuer_country"),
         }
         transaction_data["card_details"] = card_details
+
 
     # Save transaction to the database
     transaction = Transaction.objects.create(
@@ -471,9 +474,10 @@ def orders(request):
                 if order.status == "Pending":
                     # Call the order status API to get the latest status
                     order_status_response = check_order_status(order.order_id, str(user_id))
-                    
+                    # print("\n\n\norder status response", order_status_response.json())
                     if order_status_response:
                         bank_status_id = order_status_response.get("status_id")
+                        complete_order_id = order_status_response.get("order_id")
                         if bank_status_id == 21:
                             order.status = "Accepted"  # Update status to "Accepted"
                             order.save()
@@ -498,29 +502,6 @@ def orders(request):
         return render(request, "app/cart/orders.html", {"order_placed": [], "updated_orders": False, "updated_order_id": None})
 from django.http import HttpResponse
 
-# @login_required
-# def get_transaction(request, order_id):
-#     # Retrieve the transaction based on the order_id
-#     transaction = get_object_or_404(Transaction, order_id=order_id)
-
-#     # Generate a PDF receipt (or any other format you want)
-#     response = HttpResponse(content_type='application/pdf')
-#     response['Content-Disposition'] = f'attachment; filename="receipt_{transaction.txn_id}.pdf"'  # Use transaction.txn_id
-
-#     # Create the receipt content
-#     receipt_content = f"""
-#     Receipt for Transaction ID: {transaction.txn_id}
-#     Shipping Address: {transaction.shipping_address}
-#     Order Date: {transaction.order_date}
-#     Total Cost: ${transaction.total_cost}
-#     Payment Method: {transaction.payment_method_type}
-#     Merchant ID: {transaction.merchant_id}
-#     Order Items: {transaction.order_items}
-#     """
-#     print("\n\n\nRecipt", receipt_content)
-#     # Write content to the response
-#     response.write(receipt_content)
-#     return response
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
@@ -530,10 +511,24 @@ from weasyprint import HTML
 @login_required
 def get_transaction(request, order_id):
     # Fetch the transaction
-    transaction = get_object_or_404(Transaction, order_id=order_id)
+    prefix = "SG988-"
+    postfix = "-1"
+    
+    # Construct the full order_id
+    full_order_id = f"{prefix}{order_id}{postfix}"
+    transaction = get_object_or_404(Transaction, txn_id=full_order_id) 
 
-    # Render the HTML template for the receipt
-    html_string = render_to_string('app/cart/receipt_template.html', {'transaction': transaction})
+    logger.info("Transaction Data: %s", transaction.__dict__)
+    transaction_dict = transaction.__dict__.copy()
+    transaction_dict['shipping_address'] = ast.literal_eval(transaction_dict['shipping_address'])
+
+    for item in transaction_dict['order_items']:
+        if 'Selling Price' in item:
+            item['selling_price'] = f"₹{item.pop('Selling Price'):.2f}"
+        if 'Discounted Price' in item:
+            item['discounted_price'] = f"₹{item.pop('Discounted Price'):.2f}"
+
+    html_string = render_to_string('app/cart/receipt_template.html', {'transaction': transaction_dict})
 
     # Create a PDF response
     response = HttpResponse(content_type='application/pdf')
@@ -544,6 +539,44 @@ def get_transaction(request, order_id):
 
     return response
 
+@login_required
+@require_GET
+def get_transaction_json(request, order_id):
+    # Fetch the transaction
+    prefix = "SG988-"
+    postfix = "-1"
+    
+    # Construct the full order_id
+    full_order_id = f"{prefix}{order_id}{postfix}"
+
+    transaction = get_object_or_404(Transaction, txn_id=full_order_id)
+
+    # Prepare the data to return as JSON
+    transaction_dict = {
+        'id': transaction.id,
+        'order_id': transaction.order_id,
+        'shipping_address': ast.literal_eval(transaction.shipping_address),
+        'order_date': transaction.order_date.isoformat(),  # Format datetime to string
+        'total_cost': transaction.total_cost,
+        'order_items': [
+            {
+                'title': item['Title'],
+                'quantity': item['Quantity'],
+                'selling_price': f"₹{item['Selling Price']:.2f}",
+                'discounted_price': f"₹{item['Discounted Price']:.2f}",
+                'brand': item['Brand']
+            }
+            for item in transaction.order_items
+        ],
+        'txn_id': transaction.txn_id,
+        'payment_method_type': transaction.payment_method_type,
+        'merchant_id': transaction.merchant_id,
+        'txn_uuid': transaction.txn_uuid,
+        'gateway': transaction.gateway,
+        'card_details': transaction.card_details,  # Ensure this is also JSON serializable
+    }
+
+    return JsonResponse(transaction_dict)
 
 class CustomerRegistrationView(View):
     """

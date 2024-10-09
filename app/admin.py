@@ -42,12 +42,6 @@ class AddressModelAdmin(ModelAdmin):
     search_fields = ["full_name", "city", "zipcode"]
     list_filter = ["state", "city", "is_active"]
 
-
-# @admin.register(Receipt)
-# class ReceiptModelAdmin(ModelAdmin):
-#     list_display = [field.name for field in Receipt._meta.fields]
-
-
 @admin.register(Product)
 class ProductModelAdmin(ModelAdmin):
     list_display = [

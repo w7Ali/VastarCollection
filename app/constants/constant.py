@@ -51,4 +51,5 @@ STATUS_CHOICES = (
     ("On The Way", "On The Way"),
     ("Delivered", "Delivered"),
     ("Cancel", "Cancel"),
+    ("Failed", "Failed"),
 )

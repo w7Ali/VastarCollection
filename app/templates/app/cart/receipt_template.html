@@ -86,55 +86,70 @@
             margin-top: 20px;
             color: #777;
         }
+        .error-message {
+            color: red;
+            font-size: 16px;
+            text-align: center;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
     <div class="receipt">
         <h1>ShivayInternation</h1>
         <h2>Receipt for Transaction</h2>
-        <h3>Transaction ID: {{ transaction.txn_id }}</h3>
-        
-        <div class="details">
-            <div class="details-left">
-                <strong>Shipping Address:</strong><br>
-                {% for key, value in transaction.shipping_address.items %}
-                    {{ key }}: {{ value }}<br>
-                {% endfor %}
-            </div>
-            <div class="details-right">
-                <strong>Order Date:</strong> {{ transaction.order_date }}<br>
-                <strong>Payment Method:</strong> {{ transaction.payment_method_type }}<br>
-                <strong>Merchant ID:</strong> {{ transaction.merchant_id }}<br>
-                <strong>Name on Card:</strong> {{ transaction.card_details.name_on_card }}<br>
-                <strong>Card Brand:</strong> {{ transaction.card_details.card_brand }}<br>
-                <strong>Last Four Digits:</strong> {{ transaction.card_details.last_four_digits }}<br>
-            </div>
-        </div>
-        
-        <table>
-            <thead>
-                <tr>
-                    <th>Item</th>
-                    <th>Quantity</th>
-                    <th>Unit Price</th>
-                    <th>Total Price</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in transaction.order_items %}
-                <tr>
-                    <td>{{ item.Title }}</td>
-                    <td>{{ item.Quantity }}</td>
-                    <td>{{ item.selling_price }}</td>
-                    <td>{{ item.discounted_price }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
 
-        <div class="total">
-            <strong>Total Cost: ₹{{ transaction.total_cost }}</strong>
-        </div>
+        {% if transaction.status_id == "21" %}
+            <h3>Transaction ID: {{ transaction.txn_id }}</h3>
+            <h3>Status: {{ transaction.status }}</h3>
+
+            <div class="details">
+                <div class="details-left">
+                    <strong>Shipping Address:</strong><br>
+                    {% for key, value in transaction.shipping_address.items %}
+                        {{ key }}: {{ value }}<br>
+                    {% endfor %}
+                </div>
+                <div class="details-right">
+                    <strong>Order Date:</strong> {{ transaction.order_date }}<br>
+                    <strong>Payment Method:</strong> {{ transaction.payment_method_type }}<br>
+                    <strong>Merchant ID:</strong> {{ transaction.merchant_id }}<br>
+                    <strong>Name on Card:</strong> {{ transaction.card_details.name_on_card }}<br>
+                    <strong>Card Brand:</strong> {{ transaction.card_details.card_brand }}<br>
+                    <strong>Last Four Digits:</strong> {{ transaction.card_details.last_four_digits }}<br>
+                </div>
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Quantity</th>
+                        <th>Unit Price</th>
+                        <th>Total Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in transaction.order_items %}
+                    <tr>
+                        <td>{{ item.Title }}</td>
+                        <td>{{ item.Quantity }}</td>
+                        <td>{{ item.selling_price }}</td>
+                        <td>{{ item.discounted_price }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="total">
+                <strong>Total Cost: ₹{{ transaction.total_cost }}</strong>
+            </div>
+        {% else %}
+            <div class="error-message">
+                <strong>Transaction Failed!</strong><br>
+                Order ID {{ transaction.txn_id }} has failed. Please contact support for assistance.
+            </div>
+        {% endif %}
 
         <div class="footer">
             Thank you for your purchase!<br>

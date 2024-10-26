@@ -240,7 +240,7 @@ def checkout(request):
 
 
 def generate_receipt(order_id, response_data):
-    print("\n\n\nCreating the Transcation History")
+    print("\n\n\nCreating the Transaction History")
     try:
         filtered_orders = OrderPlaced.objects.filter(order_id=order_id)
         first_order = filtered_orders.first()
@@ -248,12 +248,28 @@ def generate_receipt(order_id, response_data):
         date = order_date.strftime('%Y-%m-%d %H:%M:%S %Z')
         shipping_address = first_order.address
     except ObjectDoesNotExist:
-        return None, None  # Handle cases where order or address is not found
+        return None, None
 
     if response_data:
-        total_cost = response_data.get("amount") # Assuming total_cost is calculated on order creation
+        total_cost = response_data.get("amount")
+        status_id = response_data.get("status_id")
+        status = response_data.get("status")
+        print("\n\n\t Status Id",status_id)
+        # If the payment status indicates failure
+        # if status_id in [26, 27, 23]:  # AUTHENTICATION_FAILED, AUTHORIZATION_FAILED
+        #     receipt_data = {
+        #         "status": "Transaction Failed",
+        #         "shipping_address": {},
+        #         "order_items": [],
+        #         "order_date": date,
+        #         "total": total_cost,
+        #         "error_message": "Your transaction could not be completed. Please try again.",
+        #     }
+        #     logger.info(f"Order {order_id}: Transaction failed with status ID {status_id}.")
+        #     # No need to save a transaction in case of failure
+        #     return receipt_data
 
-    # Prepare receipt data
+    # Prepare receipt data for successful transactions
     receipt_data = {
         "shipping_address": {
             "Full Name": shipping_address.full_name,
@@ -267,6 +283,7 @@ def generate_receipt(order_id, response_data):
         "order_items": [],
         "order_date": date,
         "total": total_cost,
+        "status": status,
     }
 
     for order_item in filtered_orders:
@@ -279,8 +296,10 @@ def generate_receipt(order_id, response_data):
             "Brand": product.brand,
         }
         receipt_data["order_items"].append(product_details)
+
     # Prepare transaction data
     transaction_data = {
+        "status": status,
         "order": first_order,
         "shipping_address": str(receipt_data["shipping_address"]),
         "order_date": order_date,
@@ -307,10 +326,11 @@ def generate_receipt(order_id, response_data):
         }
         transaction_data["card_details"] = card_details
 
-
-    # Save transaction to the database
+    # Save transaction to the database for successful payments
     transaction = Transaction.objects.create(
         order=first_order,
+        status=transaction_data["status"],
+        status_id=status_id,
         shipping_address=transaction_data["shipping_address"],
         order_date=transaction_data["order_date"],
         total_cost=transaction_data["total_cost"],
@@ -322,6 +342,8 @@ def generate_receipt(order_id, response_data):
         gateway=transaction_data["gateway"],
         card_details=transaction_data.get("card_details", {})
     )
+
+    return receipt_data
 
 @csrf_exempt
 def payment_done(request):
@@ -382,8 +404,35 @@ def payment_done(request):
             except OrderPlaced.DoesNotExist:
                 return JsonResponse({"error": "Order not found"}, status=404)
 
+        elif status_id in ["26", "27", "23"]:
+            orders = OrderPlaced.objects.filter(order_id=order_id)
+            order_status_response
+            generate_receipt(order_id, order_status_response)
+            # Handle failed transaction
+            logger.info(f"Transaction failed for order {order_id}.")\
+            
+            return render(request, "app/paymentfailed.html", {
+                "status_message": "Transaction failed. Please check your payment details and try again."
+            })
+
+        elif status_id in ["20", "36", "37", "23"]:
+            # Handle special statuses
+            logger.info(f"Transaction in special status for order {order_id}.")
+
+            context = {
+                "status_message": {
+                    "20": "Transaction has started. Please wait for confirmation.",
+                    "36": "Transaction has been auto-refunded.",
+                    "37": "Transaction has been partially charged.",
+                    "23": "Authentication is in progress",
+                }.get(status_id, "Unknown status.")
+            }
+            return render(request, "app/paymentfailed.html", context)
+
         else:
-            return JsonResponse({"error": "Invalid status_id"}, status=400)
+            logger.info("Invalid or unrecognized status ID.")
+            return render(request, "app/paymentfailed.html")
+
     except Exception as e:
         return JsonResponse({"error": f"An error occurred: {str(e)}"}, status=500)
 
@@ -470,22 +519,27 @@ def orders(request):
 
         if order_placed.exists():
             for order in order_placed:
-                # Only check the status if the current status is "Pending"
                 if order.status == "Pending":
-                    # Call the order status API to get the latest status
                     order_status_response = check_order_status(order.order_id, str(user_id))
-                    # print("\n\n\norder status response", order_status_response.json())
                     if order_status_response:
                         bank_status_id = order_status_response.get("status_id")
                         complete_order_id = order_status_response.get("order_id")
                         if bank_status_id == 21:
-                            order.status = "Accepted"  # Update status to "Accepted"
+                            order.status = "Accepted"
                             order.save()
-                            updated_orders = True  # Set the flag to True
-                            updated_order_id = order.order_id  # Store the updated order ID
+                            updated_orders = True
+                            updated_order_id = order.order_id
                             generate_receipt(order.order_id, order_status_response)
                             logger.info(f"\n\nOrder {order.order_id} status updated to 'Accepted'.")
                             process_cart_items(request.user, order.order_id) 
+
+                    elif bank_status_id in ["26", "27"]:
+                        order.status = "Failed"
+                        order.save()
+                        logger.info(f"\n\nOrder {order.order_id} status updated to 'Failed' due to authentication/authorization issues.")
+
+                    else:
+                        logger.info(f"\n\nOrder {order.order_id} has unrecognized status (status ID: {bank_status_id}).")
 
         else:
             logger.info(f"\n\nNo orders found for user {user_id}.")
@@ -500,6 +554,7 @@ def orders(request):
     except Exception as e:
         logger.error(f"An error occurred while retrieving orders for user {user_id}: {str(e)}")
         return render(request, "app/cart/orders.html", {"order_placed": [], "updated_orders": False, "updated_order_id": None})
+
 from django.http import HttpResponse
 
 from django.http import HttpResponse
@@ -554,9 +609,11 @@ def get_transaction_json(request, order_id):
     # Prepare the data to return as JSON
     transaction_dict = {
         'id': transaction.id,
+        'status': transaction.status,
+        'status_id': transaction.status_id,
         'order_id': transaction.order_id,
         'shipping_address': ast.literal_eval(transaction.shipping_address),
-        'order_date': transaction.order_date.isoformat(),  # Format datetime to string
+        'order_date': transaction.order_date.isoformat(),
         'total_cost': transaction.total_cost,
         'order_items': [
             {
@@ -573,7 +630,7 @@ def get_transaction_json(request, order_id):
         'merchant_id': transaction.merchant_id,
         'txn_uuid': transaction.txn_uuid,
         'gateway': transaction.gateway,
-        'card_details': transaction.card_details,  # Ensure this is also JSON serializable
+        'card_details': transaction.card_details,
     }
 
     return JsonResponse(transaction_dict)

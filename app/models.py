@@ -148,6 +148,8 @@ class OrderPlaced(models.Model):
 
 class Transaction(models.Model):
     order = models.OneToOneField(OrderPlaced, on_delete=models.CASCADE)
+    status = models.CharField(max_length=255)
+    status_id = models.CharField(max_length=255)
     shipping_address = models.JSONField()
     order_date = models.DateTimeField()
     total_cost = models.FloatField()

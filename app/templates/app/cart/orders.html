@@ -78,7 +78,8 @@
 
                     <!-- Links to View and Download the Transaction Receipt -->
                     <div class="mt-3">
-                        <a href="{% url 'get-transaction' order_id=order_group.grouper %}" class="btn btn-primary" target="_blank">Download Receipt</a>
+                        <a href="#" class="btn btn-primary" id="downloadReceipt-{{ order_group.grouper }}" 
+                           onclick="checkDownloadPermission('{{ order_group.grouper }}')">Download Receipt</a>
                         <button class="btn btn-success" data-order-id="{{ order_group.grouper }}" onclick="fetchTransactionData(this)">View Receipt</button>
                     </div>
                 </div>
@@ -140,26 +141,14 @@
     perspective: 1000; /* For 3D effect */
 }
 
-@keyframes fadeIn {
-    0% {
-        opacity: 0;
-        transform: translateY(-20px) rotateY(0deg);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0) rotateY(0deg);
-    }
+.disabled {
+    pointer-events: none; /* Disable clicks */
+    opacity: 0.65; /* Visual feedback for disabled state */
 }
 
-@keyframes fadeOut {
-    0% {
-        opacity: 1;
-        transform: translateY(0) rotateY(0deg);
-    }
-    100% {
-        opacity: 0;
-        transform: translateY(-20px) rotateY(0deg);
-    }
+/* Custom styles for transaction failure details */
+.transaction-failed {
+    color: red; /* Red color for failed transactions */
 }
 </style>
 
@@ -182,20 +171,56 @@
         fetch(url)
             .then(response => response.json())
             .then(data => {
-                const transactionDetails = `
-                    <p><strong>Transaction ID:</strong> ${data.txn_id}</p>
-                    <p><strong>Order Date:</strong> ${data.order_date}</p>
-                    <p><strong>Total Cost:</strong> ₹${data.total_cost}</p>
-                    <h6>Order Items:</h6>
-                    <ul>
-                        ${data.order_items.map(item => `
-                            <li>${item.Title} - ${item.Quantity} pcs - Price: ₹${item.SellingPrice}</li>
-                        `).join('')}
-                    </ul>
-                    <h6>Shipping Address:</h6>
-                    <p>${JSON.stringify(data.shipping_address).replace(/,/g, ',<br>')}</p>
-                `;
+                let transactionDetails;
+                if (data.status_id !== "21") {
+                    transactionDetails = `
+                        <p class="transaction-failed">Transaction has failed.</p>
+                        <p class="transaction-failed"><strong>Status ID:</strong> ${data.status_id}</p>
+                        <p class="transaction-failed"><strong>Price:</strong> ₹${data.total_cost}</p>
+                        <p class="transaction-failed"><strong>Order Date:</strong> ${data.order_date}</p>
+                    `;
+                } else {
+                    transactionDetails = `
+                        <p><strong>Transaction ID:</strong> ${data.txn_id}</p>
+                        <p><strong>Status:</strong> ${data.status}</p>
+                        <p><strong>Order Date:</strong> ${data.order_date}</p>
+                        <p><strong>Total Cost:</strong> ₹${data.total_cost}</p>
+                        <h6>Order Items:</h6>
+                        <ul>
+                            ${data.order_items.map(item => `
+                                <li>${item.Title} - ${item.Quantity} pcs - Price: ₹${item.SellingPrice}</li>
+                            `).join('')}
+                        </ul>
+                        <h6>Shipping Address:</h6>
+                        <p>${JSON.stringify(data.shipping_address).replace(/,/g, ',<br>')}</p>
+                    `;
+                }
                 document.getElementById(`transactionDetails-${orderId}`).innerHTML = transactionDetails;
+
+                // Disable download receipt button if transaction failed
+                const downloadButton = document.getElementById(`downloadReceipt-${orderId}`);
+                if (data.status_id !== "21") {
+                    downloadButton.disabled = true;
+                    downloadButton.classList.add('disabled'); // Add class for styling
+                    downloadButton.innerHTML = 'Transaction Failed'; // Update button text
+                }
+            })
+            .catch(error => console.error('Error fetching transaction data:', error));
+    }
+
+    function checkDownloadPermission(orderId) {
+        const url = `{% url 'get-transaction-json' 'order_id_placeholder' %}`.replace('order_id_placeholder', orderId);
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status_id === "21") {
+                    // Proceed with download
+                    window.open(`{% url 'get-transaction' order_id='order_id_placeholder' %}`.replace('order_id_placeholder', orderId), '_blank');
+                } else {
+                    // Show alert if transaction failed
+                    alert("Transaction failed. Status ID: " + data.status_id);
+                }
             })
             .catch(error => console.error('Error fetching transaction data:', error));
     }

@@ -1,0 +1,24 @@
+{% extends "app/base.html" %}
+
+{% block title %}Payment Failed{% endblock title %}
+
+{% block main-content %}
+<div class="container text-center" style="margin-top: 50px;">
+    <h1 class="text-danger">Payment Failed</h1>
+    
+    {% if status_message %}
+        <p>{{ status_message }}</p>
+    {% else %}
+        <p>We're sorry, but your payment could not be processed. Please try again or contact customer support.</p>
+    {% endif %}
+
+    <div class="mt-4">
+        <a href="{% url 'home' %}" class="btn btn-secondary">Return to Homepage</a>
+    </div>
+
+    <div class="mt-5">
+        <h5>Need Help?</h5>
+        <p>If you need assistance, please contact our support team at <a href="mailto:support@shivayinternational.co">support@shivayinternational.co</a>.</p>
+    </div>
+</div>
+{% endblock main-content %}

@@ -3,6 +3,8 @@ from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 from django.urls import path
 
+from .payu import initiate_payment_payu, payment_done_payu
+
 from app import api_views, views
 
 from .forms import (
@@ -131,7 +133,13 @@ api_urls = [
     path("api/products/", api_views.ProductListAPIView.as_view(), name="product-list"),
 ]
 
+payu_urls = [
+    path('initiate_payment_payu/', initiate_payment_payu, name='initiate_payment_payu'),
+    path('payment_done_payu/', payment_done_payu, name='payment_done_payu'),
+]
+
 # Combine all URL patterns
+urlpatterns += payu_urls
 urlpatterns += auth_urls
 urlpatterns += api_urls
 

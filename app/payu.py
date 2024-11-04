@@ -51,7 +51,9 @@ def initiate_payment_payu(request):
             quantity=cart_item.quantity,
             status="Pending",
             order_id=order_id,
-            address=selected_address
+            address=selected_address,
+            gateway="PayU"
+
         )
         logger.info(f"Order placed for product: {cart_item.product.title}, Quantity: {cart_item.quantity}")
 
@@ -130,3 +132,9 @@ def processed_payu(params):
     logger.info("Sending payload to PayU...")
     response = requests.post(url, data=params, headers=headers)
     return response
+
+@csrf_exempt
+def failed_payu(request):
+    return render(request, "app/paymentfailed.html", {
+        "status_message": "Transaction failed. Please check your payment details and try again."
+    })

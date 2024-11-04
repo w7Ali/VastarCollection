@@ -24,7 +24,7 @@ CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
 
 # Application definition
 INSTALLED_APPS = [
-    "jazzmin",
+    # "jazzmin",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "django_extensions",
     "rest_framework",
     "app",
+    "payu",
 ]
 
 MIDDLEWARE = [
@@ -117,6 +118,14 @@ SESSION_COOKIE_SECURE = False
 HDFC_API_KEY = os.getenv('HDFC_API_KEY', 'default_hdfc_api_key')
 HDFC_MERCHANT_ID = os.getenv('HDFC_MERCHANT_ID', 'default_merchant_id')
 HDFC_CLIENT_ID = os.getenv('HDFC_CLIENT_ID', 'default_client_id')
+
+# PayU
+PAYU_MERCHANT_KEY = os.getenv('PAYU_MERCHANT_KEY')
+PAYU_MERCHANT_SALT = os.getenv('PAYU_MERCHANT_SALT')
+PAYU_BASE_URL = os.getenv('PAYU_BASE_URL')  # Change to live URL in production
+PAYU_SUCCESS_URL = os.getenv('PAYU_SUCCESS_URL')
+PAYU_FAILURE_URL = os.getenv('PAYU_FAILURE_URL')
+
 #####################Adding logging#########################
 
 ############################################################

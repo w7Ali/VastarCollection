@@ -106,14 +106,6 @@ class ProductDetailView(View):
                 "totalitem": totalitem,
             },
         )
-# from payu.gateway import payu_url
-# payu_url = payu_url()
-# def pay_u(request):
-#     payu_salt = "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCv5l1SRpWHOr8YlmRP/2rf8v0chj8UH4rcljVyIk1DjgQQmoZU8zipKNrBKyI7tbmMCzwbu4MiIs2zxAFgxT3Pkw2jkb6FQkEUTGwLpk6xtb5udjMdKmFHAbevhjAiHAxqjtgKiycaAJZXWqQMq5l1MZYYXcy8bmzJv9z6kNaP9sxWfjUIi/ApoCGlcEOLjjKtITe4K4RVxDrBtflSmA3XP70u7ys31Y/XXgMzVgEaawiuFhd/u6SIit5khA0n2GiWNbrMxsMjVIUVaazFAlW2/CHtHC0l7rK9a+pZfSw4HG4z3Ol/9xRsN5MBCzhW6rcLQfyc6yawWganWKrzNKlVAgMBAAECggEAd35OPTtYDyK4eNKJ2NKR3wsqKXuFVH1NDyc3rY5h4JeUaVcgFIuaHUh0uy87NUbxgpKLReevYLw1834e1YeIwv+KD2lN/ScSIOD9sThMU2s8r7u6Y4DLzrn699F312Qohyb82sTHTmHBwBwCP90/BZ8m8Oyfzg5R9whQ7SMBr4//lMVQNGo7hShdySPwO4moGyjeUNN8YrOoXEirQCoPR0KZiWFrUzLB0+lpgBHy29nFt923xNK0cDd2v1xvLr0oyh7Uoe7y188X9yWerAQVTknVokqfqyS023fmuBloOmQWSUhclLanz+h5CY33TIcBWXN6qYXwTOHb+//VtAKoYQKBgQDdS0DKJ1d+yRGLhfE8tqaWy6YZJZzdE5e6eId0lEet655NleZom7zy2raavFkt9ern2XWVJTxBXybE/LGcf7e+djstgHiznpNXDYwgUWJzczMqgKyRgMfsl9DmYR/SXbl0Q/jqw0lTIOyl5TOOdookOmjwd9ielS5u8uDoG59WiQKBgQDLfJSlhsg3B1nEMJwtclHpuIvQobczqcpRYH4P8VO3/K+jzBnfybYP6/c9chAcas2kWsYyigCOVXdPffEM6iMAdgOKb5WMDjd9RAIQEszTIld3P1qOn1vktSh2Bff5lJQiv8ac5JmsNgV9BaE6b9E/UOjBjH7zYv5qNIvmT0IJbQKBgHB7b9NRbAfl7CUfUB+sN8Eugp8Fn1ZAPz9pRHDdbhHZUf3d0+AYSVKoGWlNk4bpGR4ASuQkqRwRYYN/bkg+IweM0UevpaqnT/1PxYon1AMa60cPYKgU7Yo1INn5RFOJkFqosj2iRgMbGS658hrX5h/EENMqF9GDwrZifi982uEBAoGABhxHmnDhskVWPL348qRsMUiJakpw5exDVw4+utvUV8IOxCxs2nuELBY55m52bWQHqNfQ+9OJEL0gSBLQGkMtqeXhVVbkdsA2ilxwc2sdG3n8hmgwn/fJGqUWAfVL7QK5MBHyNOPoeXNl1stEfCy/a9dSJf3CEiz21tmdGd1nbkECgYEA14Y+4tdEgvNUikvgYF+UASxyWhNeJmfprn66QbkbCy6TWVARGnT3iyd3SCaFBv7JcKoN3B3v3XelxNXjgl0bPug38QE+mBGTLH17v1mP+75rjAqHA/Zbvpk+ikecw1SJJnb6y5uMLyBAQnChn0x4DiddzovYe4PEs0IfraonUAk="
-#     payu_key = "jeYZqv"
-#     payu_client_id = "e56030dd235e57d3777785f13127894a38249a61eb8e6318c025319a2774a381"
-#     payu_client_seceret = "cb75cbf45b0c12270c5c98569cdeadbd0adbfc0db25e3dc2cf86d379548749ce"
-#     payu_mode = "TEST"
 
 @login_required
 def add_to_cart(request):
@@ -512,27 +504,28 @@ def orders(request):
 
         if order_placed.exists():
             for order in order_placed:
-                if order.status == "Pending":
-                    order_status_response = check_order_status(order.order_id, str(user_id))
-                    if order_status_response:
-                        bank_status_id = order_status_response.get("status_id")
-                        complete_order_id = order_status_response.get("order_id")
-                        if bank_status_id == 21:
-                            order.status = "Accepted"
+                if order.gateway == "HDFC":
+                    if order.status == "Pending":
+                        order_status_response = check_order_status(order.order_id, str(user_id))
+                        if order_status_response:
+                            bank_status_id = order_status_response.get("status_id")
+                            complete_order_id = order_status_response.get("order_id")
+                            if bank_status_id == 21:
+                                order.status = "Accepted"
+                                order.save()
+                                updated_orders = True
+                                updated_order_id = order.order_id
+                                generate_receipt(order.order_id, order_status_response)
+                                logger.info(f"\n\nOrder {order.order_id} status updated to 'Accepted'.")
+                                process_cart_items(request.user, order.order_id) 
+
+                        elif bank_status_id in ["26", "27"]:
+                            order.status = "Failed"
                             order.save()
-                            updated_orders = True
-                            updated_order_id = order.order_id
-                            generate_receipt(order.order_id, order_status_response)
-                            logger.info(f"\n\nOrder {order.order_id} status updated to 'Accepted'.")
-                            process_cart_items(request.user, order.order_id) 
+                            logger.info(f"\n\nOrder {order.order_id} status updated to 'Failed' due to authentication/authorization issues.")
 
-                    elif bank_status_id in ["26", "27"]:
-                        order.status = "Failed"
-                        order.save()
-                        logger.info(f"\n\nOrder {order.order_id} status updated to 'Failed' due to authentication/authorization issues.")
-
-                    else:
-                        logger.info(f"\n\nOrder {order.order_id} has unrecognized status (status ID: {bank_status_id}).")
+                        else:
+                            logger.info(f"\n\nOrder {order.order_id} has unrecognized status (status ID: {bank_status_id}).")
 
         else:
             logger.info(f"\n\nNo orders found for user {user_id}.")
@@ -801,9 +794,7 @@ def search_products(request):
                 "product_image",
             )
         )
-
         return JsonResponse(product_list, safe=False)
-# from .payu import initiate_payment_payu
 
 @login_required
 def initiate_payment(request):
@@ -818,9 +809,7 @@ def initiate_payment(request):
             f"User {user.id} has no cart items. Redirecting to empty cart response."
         )
         return JsonResponse({"message": "No cart items found"}, status=404)
-    # payment_gateway = request.POST.get('gateway')
 
-    # Fetch customer details
     customer = Customer.objects.filter(user=user).first()
 
     # Check if customer details are available
@@ -851,7 +840,8 @@ def initiate_payment(request):
             quantity=cart_item.quantity,
             status="Pending",
             order_id=order_id,
-            address=Address.objects.get(id=selected_address_id)
+            address=Address.objects.get(id=selected_address_id),
+            gateway="HDFC"
         )
 
     logger.info(f"\n\nOrder {order_id} created with total amount {totalamount}")

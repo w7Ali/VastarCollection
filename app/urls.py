@@ -3,7 +3,7 @@ from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 from django.urls import path
 
-from .payu import initiate_payment_payu, payment_done_payu
+from .payu import initiate_payment_payu, payment_done_payu, failed_payu
 
 from app import api_views, views
 
@@ -136,6 +136,7 @@ api_urls = [
 payu_urls = [
     path('initiate_payment_payu/', initiate_payment_payu, name='initiate_payment_payu'),
     path('payment_done_payu/', payment_done_payu, name='payment_done_payu'),
+    path('payment_faild_payu/', failed_payu, name='payment_failed_payu'),
 ]
 
 # Combine all URL patterns

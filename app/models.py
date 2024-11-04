@@ -136,7 +136,7 @@ class OrderPlaced(models.Model):
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="Pending")
     order_id = models.CharField(max_length=100, unique=False)
     address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True)  # Link to Address model
-    # gateway = models.CharField(max_length=20, null=True)
+    gateway = models.CharField(max_length=20, null=True)
 
     @property
     def total_cost(self):

@@ -65,8 +65,7 @@
         <div class="form-check mt-2 mb-5">
           <input class="form-check-input square-radio" type="radio" name="custid" id="custadd{{ forloop.counter }}" value="{{ ad.id }}"
           {% if ad.is_active %} checked {% endif %} 
-        >
-        
+          >
           <label class="form-check-label fw-bold" for="custadd{{ forloop.counter }}">
             Address: {{ forloop.counter }}
           </label>
@@ -74,10 +73,18 @@
         {% endfor %}
         <div class="border p-3">
           <p class="fw-bold">Payment Options:</p>
-          <button type="submit" class="btn btn-warning mt-3 px-5 fw-bold">Pay with HDFC</button>
+          <button type="submit" name="gateway" value="HDFC" class="btn btn-warning mt-3 px-5 fw-bold">Pay with HDFC</button>
+          <button type="submit" name="gateway" value="PAYU" class="btn btn-primary mt-3 px-5 fw-bold" onclick="setPayUAction()">Pay with PayU</button>
         </div>
       </form>
     </div>
   </div>
 </div>
+
+<script>
+  function setPayUAction() {
+    const form = document.getElementById('myform');
+    form.action = "{% url 'initiate_payment_payu' %}"; // Update the form action for PayU
+  }
+</script>
 {% endblock main-content %}

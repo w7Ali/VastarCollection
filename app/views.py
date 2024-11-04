@@ -106,7 +106,14 @@ class ProductDetailView(View):
                 "totalitem": totalitem,
             },
         )
-
+# from payu.gateway import payu_url
+# payu_url = payu_url()
+# def pay_u(request):
+#     payu_salt = "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCv5l1SRpWHOr8YlmRP/2rf8v0chj8UH4rcljVyIk1DjgQQmoZU8zipKNrBKyI7tbmMCzwbu4MiIs2zxAFgxT3Pkw2jkb6FQkEUTGwLpk6xtb5udjMdKmFHAbevhjAiHAxqjtgKiycaAJZXWqQMq5l1MZYYXcy8bmzJv9z6kNaP9sxWfjUIi/ApoCGlcEOLjjKtITe4K4RVxDrBtflSmA3XP70u7ys31Y/XXgMzVgEaawiuFhd/u6SIit5khA0n2GiWNbrMxsMjVIUVaazFAlW2/CHtHC0l7rK9a+pZfSw4HG4z3Ol/9xRsN5MBCzhW6rcLQfyc6yawWganWKrzNKlVAgMBAAECggEAd35OPTtYDyK4eNKJ2NKR3wsqKXuFVH1NDyc3rY5h4JeUaVcgFIuaHUh0uy87NUbxgpKLReevYLw1834e1YeIwv+KD2lN/ScSIOD9sThMU2s8r7u6Y4DLzrn699F312Qohyb82sTHTmHBwBwCP90/BZ8m8Oyfzg5R9whQ7SMBr4//lMVQNGo7hShdySPwO4moGyjeUNN8YrOoXEirQCoPR0KZiWFrUzLB0+lpgBHy29nFt923xNK0cDd2v1xvLr0oyh7Uoe7y188X9yWerAQVTknVokqfqyS023fmuBloOmQWSUhclLanz+h5CY33TIcBWXN6qYXwTOHb+//VtAKoYQKBgQDdS0DKJ1d+yRGLhfE8tqaWy6YZJZzdE5e6eId0lEet655NleZom7zy2raavFkt9ern2XWVJTxBXybE/LGcf7e+djstgHiznpNXDYwgUWJzczMqgKyRgMfsl9DmYR/SXbl0Q/jqw0lTIOyl5TOOdookOmjwd9ielS5u8uDoG59WiQKBgQDLfJSlhsg3B1nEMJwtclHpuIvQobczqcpRYH4P8VO3/K+jzBnfybYP6/c9chAcas2kWsYyigCOVXdPffEM6iMAdgOKb5WMDjd9RAIQEszTIld3P1qOn1vktSh2Bff5lJQiv8ac5JmsNgV9BaE6b9E/UOjBjH7zYv5qNIvmT0IJbQKBgHB7b9NRbAfl7CUfUB+sN8Eugp8Fn1ZAPz9pRHDdbhHZUf3d0+AYSVKoGWlNk4bpGR4ASuQkqRwRYYN/bkg+IweM0UevpaqnT/1PxYon1AMa60cPYKgU7Yo1INn5RFOJkFqosj2iRgMbGS658hrX5h/EENMqF9GDwrZifi982uEBAoGABhxHmnDhskVWPL348qRsMUiJakpw5exDVw4+utvUV8IOxCxs2nuELBY55m52bWQHqNfQ+9OJEL0gSBLQGkMtqeXhVVbkdsA2ilxwc2sdG3n8hmgwn/fJGqUWAfVL7QK5MBHyNOPoeXNl1stEfCy/a9dSJf3CEiz21tmdGd1nbkECgYEA14Y+4tdEgvNUikvgYF+UASxyWhNeJmfprn66QbkbCy6TWVARGnT3iyd3SCaFBv7JcKoN3B3v3XelxNXjgl0bPug38QE+mBGTLH17v1mP+75rjAqHA/Zbvpk+ikecw1SJJnb6y5uMLyBAQnChn0x4DiddzovYe4PEs0IfraonUAk="
+#     payu_key = "jeYZqv"
+#     payu_client_id = "e56030dd235e57d3777785f13127894a38249a61eb8e6318c025319a2774a381"
+#     payu_client_seceret = "cb75cbf45b0c12270c5c98569cdeadbd0adbfc0db25e3dc2cf86d379548749ce"
+#     payu_mode = "TEST"
 
 @login_required
 def add_to_cart(request):
@@ -254,20 +261,6 @@ def generate_receipt(order_id, response_data):
         total_cost = response_data.get("amount")
         status_id = response_data.get("status_id")
         status = response_data.get("status")
-        print("\n\n\t Status Id",status_id)
-        # If the payment status indicates failure
-        # if status_id in [26, 27, 23]:  # AUTHENTICATION_FAILED, AUTHORIZATION_FAILED
-        #     receipt_data = {
-        #         "status": "Transaction Failed",
-        #         "shipping_address": {},
-        #         "order_items": [],
-        #         "order_date": date,
-        #         "total": total_cost,
-        #         "error_message": "Your transaction could not be completed. Please try again.",
-        #     }
-        #     logger.info(f"Order {order_id}: Transaction failed with status ID {status_id}.")
-        #     # No need to save a transaction in case of failure
-        #     return receipt_data
 
     # Prepare receipt data for successful transactions
     receipt_data = {
@@ -350,7 +343,7 @@ def payment_done(request):
     try:
         response_data = request.POST.dict()
         logger.info(f"\n\nReceived payment completion request: {json.dumps(response_data, indent=4)}")
-                    
+
         order_id = response_data.get("order_id")
         status = response_data.get("status")
         signature = response_data.get("signature")
@@ -810,7 +803,7 @@ def search_products(request):
         )
 
         return JsonResponse(product_list, safe=False)
-
+# from .payu import initiate_payment_payu
 
 @login_required
 def initiate_payment(request):
@@ -825,6 +818,7 @@ def initiate_payment(request):
             f"User {user.id} has no cart items. Redirecting to empty cart response."
         )
         return JsonResponse({"message": "No cart items found"}, status=404)
+    # payment_gateway = request.POST.get('gateway')
 
     # Fetch customer details
     customer = Customer.objects.filter(user=user).first()

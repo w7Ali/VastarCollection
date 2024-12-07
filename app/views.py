@@ -824,7 +824,7 @@ def initiate_payment(request):
         return redirect("profile")
 
     amount = sum(p.quantity * p.product.discounted_price for p in cart_items)
-    shipping_amount = 70.0
+    shipping_amount = 1.0
     totalamount = amount + shipping_amount
 
     order_id = f"order-{uuid.uuid4()}"
@@ -867,7 +867,6 @@ def initiate_payment(request):
     api_key = settings.HDFC_API_KEY
     merchant_id = settings.HDFC_MERCHANT_ID
     encoded_credentials = base64.b64encode(f"{api_key}:".encode()).decode()
-
     headers = {
         "Authorization": f"Basic {encoded_credentials}",
         "Content-Type": "application/json",
@@ -878,7 +877,7 @@ def initiate_payment(request):
     # Send request to HDFC
     try:
         response = requests.post(
-            "https://smartgatewayuat.hdfcbank.com/session",
+            "https://smartgateway.hdfcbank.com/session",
             json=payload,
             headers=headers,
         )

@@ -42,6 +42,7 @@ urlpatterns = [
     # Static Pages
     path("terms-conditions/", views.terms_conditions, name="terms-conditions"),
     path("privacy/", views.privacy, name="privacy"),
+    path("refund/", views.refund, name="refund"),
     path("api/search/", views.search_products, name="search-products"),
 ]
 

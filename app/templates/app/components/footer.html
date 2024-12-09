@@ -1,40 +1,83 @@
 {% load static %}
 <style>
+  /* Footer container styling */
+  body{
+    position: relative;
+  }
   #footer {
-    transform: translate(0%,100%);
+    width: 100vw;
+    color: white;
+    background-color: #011702;
+    padding: 20px 0;
+    /* position: absolute; */
+    position: fixed;
+    left:0;
+    bottom: 0;
+  }
+
+  .footer-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap; /* Ensures elements wrap on smaller screens */
+  }
+
+  .footer-section {
+    flex: 1; /* Equal space for each section */
+    max-width: 25%; /* Restrict maximum width for large screens */
+    text-align: center;
+  }
+
+  .footer-section h3 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+  }
+
+  .footer-section p, .footer-section a {
+    font-size: 1rem;
+    color: whitesmoke;
+    text-decoration: none;
+    display: block;
+  }
+
+  .footer-section a:hover {
+    text-decoration: underline;
+  }
+
+  /* Responsive styling for small screens */
+  @media (max-width: 768px) {
+    .footer-container {
+      flex-direction: column; /* Stack sections vertically */
+    }
+
+    .footer-section {
+      max-width: 100%; /* Full width for each section */
+    }
   }
 </style>
-<!-- Start Footer -->
-<footer class="container-fluid px-0 mt-5" id="footer">
-  <div class="container mb-5 d-flex">
-    <div class="row">
-    <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" id="see-it-first">
-      <!-- Content will be dynamically added here -->
+
+<footer id="footer">
+  <div class="footer-container">
+    <div class="footer-section" id="see-it-first">
+      <!-- Content dynamically added -->
     </div>
-    <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12 " >
-      <div id="policy">
-        <!-- Content will be dynamically added here -->
-      </div>
+    <div class="footer-section" id="policy">
+      <!-- Content dynamically added -->
     </div>
-    <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12 " >
-      <div id="about-us">
-        <!-- Content will be dynamically added here -->
-      </div>
+    <div class="footer-section" id="about-us">
+      <!-- Content dynamically added -->
     </div>
-    <div class="col-lg-3 col-md-3 col-sm-12 col-xs-">
-      <div id="contact-us">
-        <!-- Content will be dynamically added here -->
-      </div>
+    <div class="footer-section" id="contact-us">
+      <!-- Content dynamically added -->
     </div>
-  </div>
   </div>
   <hr>
-  <div class="text-center p-3">
-    <small class="" id="copyright-info">
-      <!-- Copyright information will be dynamically added here -->
+  <div class="text-center">
+    <small id="copyright-info">
+      <!-- Content dynamically added -->
     </small>
   </div>
 </footer>
-<script src="{% static 'app/js/footer.js' %}"></script>
 
-<!-- End Footer -->
+<script src="{% static 'app/js/footer.js' %}"></script>

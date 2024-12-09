@@ -737,6 +737,12 @@ def privacy(request):
     return render(request, "app/policy/privacy.html")
 
 
+def refund(request):
+    """
+    View to display refund policy.
+    """
+    return render(request, "app/policy/refund.html")
+
 def men_collection(request):
     """
     View to list men's wear products with pagination.
